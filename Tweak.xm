@@ -128,9 +128,16 @@
 				body = @"[an error occured]";
 			}
 
-
-			id textColor = [[comment bodyRichTextAttributed] attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [[comment bodyRichTextAttributed] length])][@"NSColor"];
-
+			id themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+			id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			id textColor;
+			
+			if (isNightMode) {
+				textColor = [[themeManager nightTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager dayTheme] bodyTextColor];
+			}
+			
 			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
 			[bodyMutableAttributedText beginEditing];
@@ -139,6 +146,10 @@
 				[bodyMutableAttributedText addAttribute:NSForegroundColorAttributeName value:textColor range:range];
 			}];
 			[bodyMutableAttributedText endEditing];
+			
+			
+			
+			
 
 			[comment setValue:bodyMutableAttributedText forKey:@"bodyRichTextAttributed"];
 
@@ -156,6 +167,7 @@
 			[request release];
 			[queue release];
 			[bodyMutableAttributedText release];
+			[themeManager release];
 		}];	
 	}
 }
@@ -242,10 +254,14 @@
 					body = @"[an error occured]";
 				}			
 				
-				id textColor = [[post selfPostRichTextAttributed] attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [[post selfPostRichTextAttributed] length])][@"NSColor"];
+				id themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+				id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+				id textColor;
 				
-				if (textColor == nil){
-					textColor = [UIColor colorWithRed:0.843137 green:0.854902 blue:0.862745 alpha:1.0];
+				if (isNightMode) {
+					textColor = [[themeManager nightTheme] bodyTextColor];
+				} else{
+					textColor = [[themeManager dayTheme] bodyTextColor];
 				}
 
 				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
@@ -268,6 +284,7 @@
 				[request release];
 				[queue release];
 				[bodyMutableAttributedText release];
+				[themeManager release];
 			}];			
 		}	
 	}

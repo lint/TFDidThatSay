@@ -97,11 +97,25 @@
 -(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
 @end
 
+@interface RUITheme
+@property(assign,nonatomic) id bodyTextColor;
+@end
+
 @interface NSAttributedStringMarkdownParser
 +(id) currentConfig;
 +(id) attributedStringUsingCurrentConfig:(id) arg1;
 -(id) attributedStringFromMarkdownString:(id) arg1;
 -(id) initWithConfig:(id) arg1;
+@end
+
+@interface ThemeManager
+@property(assign,nonatomic) id dayTheme;
+@property(assign,nonatomic) id nightTheme;
+-(id) initWithTraitCollection:(id) arg1 appSettings:(id) arg2;
+@end
+
+@interface AppSettings
++(id) sharedSettings;
 @end
 
 
