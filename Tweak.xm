@@ -185,7 +185,6 @@
 -(void) didLoad{
 	%orig;
 	
-	[[[self delegate] viewController] setFeedPostTextWithThumbnailNode:[self textNode]];
 	[[[self delegate] viewController] setFeedPostDetailCellNode:self];
 }
 %end
