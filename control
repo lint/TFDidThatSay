@@ -1,0 +1,9 @@
+Package: com.lint.undelete
+Name: TFDidThatSay?
+Depends: mobilesubstrate
+Version: 1.1.0
+Architecture: iphoneos-arm
+Description: See "[deleted]" comments and posts without leaving Reddit!
+Maintainer: lint <apieceoflint@protonmail.com>
+Author: lint <apieceoflint@protonmail.com>
+Section: Tweaks
