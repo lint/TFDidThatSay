@@ -1,12 +1,11 @@
 
-#include "Tweak.h"
+#import "Reddit.h"
 
 %group Redditv4
 
 %hook CommentTreeNode
 %property(assign,nonatomic)id commentTreeHeaderNode;
 %property(assign,nonatomic)id commentTreeCommandBarNode;
-%property(assign,nonatomic)BOOL isLoadingArchivedComment;
 %end
 
 
@@ -28,35 +27,8 @@
 	%orig;
 
 	[[self commentTreeNode] setCommentTreeCommandBarNode:self];
-	[[self commentTreeNode] setIsLoadingArchivedComment:NO];
 }
 %end
-
-
-/*
-%hook ASCollectionView
-
--(id) dequeueReusableCellWithReuseIdentifier: (id) arg1 forIndexPath:(id) arg2{
-	id orig = %orig;
-	
-	if ([orig isKindOfClass:[%c(_ASCollectionViewCell) class]]){
-	
-		id node = [[orig node] contentNode];
-		
-		if ([node isKindOfClass:[%c(CommentTreeDisplayNode) class]]) {
-			id commentNode = [node commentNode];
-			
-			if ([commentNode isLoadingArchivedComment]){
-			
-				//[[[commentNode commentTreeCommandBarNode] activityIndicator] startAnimating];
-			
-			}
-		}
-	}
-	return orig;
-}
-%end
-*/
 
 
 %hook CommentActionSheetViewController
@@ -87,20 +59,6 @@
 		
 		id commentTreeNode = [self commentTreeNode];
 		id comment = [commentTreeNode  comment];
-		
-		[commentTreeNode setIsLoadingArchivedComment:YES];
-
-		/*
-		id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-		if (isNightMode){
-			UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhite];
-		} else {
-			UIActivityIndicatorView* activityIndicator = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-		}
-		[self setActivityIndicator:activityIndicator];
-		[activityIndicator startAnimating];
-		[sender addSubview:activityIndicator];
-		*/
 
 		NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
@@ -147,9 +105,6 @@
 			}];
 			[bodyMutableAttributedText endEditing];
 			
-			
-			
-			
 
 			[comment setValue:bodyMutableAttributedText forKey:@"bodyRichTextAttributed"];
 
@@ -159,11 +114,7 @@
 			[comment setValue:bodyMutableAttributedText forKey:@"bodyAttributedText"];
 			
 			[[commentTreeNode commentTreeHeaderNode] updateContentViewsForData:comment];
-			
-			
-			[commentTreeNode setIsLoadingArchivedComment:NO];
-			//[activityIndicator stopAnimating];
-			
+
 			[request release];
 			[queue release];
 			[bodyMutableAttributedText release];
@@ -294,18 +245,104 @@
 
 
 
+%group Redditv3
+
+%hook CommentView
+
+%new
+-(void) buttonAction {
+
+	id commentsViewController = [self delegate];
+	id comment = [self comment];
+
+	NSError* error;
+
+	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[comment pkWithoutPrefix]]]];
+	[request setHTTPMethod:@"GET"];
+
+	NSData *data = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+
+	NSString *author = @"[author]";
+	NSString *body = @"[body]";
+
+	if (data != nil && error == nil){
+		
+		id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+		   
+		author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
+		body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
+		   
+		if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
+			body = @"[comment was unable to be archived]";
+		}
+		
+	} else if (error != nil || data == nil){
+		body = @"[an error occured]";
+	}
+
+	[comment setValue:author forKey:@"author"];
+
+	[comment setValue:[%c(MarkDownParser) attributedStringFromMarkdownString: body] forKey:@"bodyAttributedText"];
+	[comment setValue:body forKey:@"bodyText"];
+
+	[commentsViewController reloadCommentsWithNewCommentsHighlight:NO autoScroll:NO animated:NO];
+
+}
+
+
+-(id) initWithFrame:(id)arg1{
+	id orig = %orig;
+	id commandView = [self commandView];
+
+	UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+	[undeleteButton addTarget:self action:@selector(buttonAction) forControlEvents:UIControlEventTouchUpInside];
+
+	UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+	
+	[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
+
+	[commandView setUndeleteButton:undeleteButton];
+	[commandView addSubview:undeleteButton];
+
+	return orig;
+}
+
+
+%end
+
+
+%hook CommentCommandView
+%property (assign, nonatomic) id undeleteButton;
+
+-(void) layoutSubviews{
+	%orig;
+
+	UIButton *button = [self undeleteButton];
+
+	button.frame = CGRectMake([[self overflowButton ] frame].origin.x - 32, 0, 32, 32);
+
+}
+%end
+
+%end
+
+
+
 
 %ctor{
 	
+	NSString* processName = [[NSProcessInfo processInfo] processName];
 	NSString* version = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"];
 	NSArray* versionArray = [version componentsSeparatedByString:@"."];
-		
-	if ([versionArray[0] isEqualToString:@"4"]){
-		%init(Redditv4);	
-	} else if ([versionArray[0] isEqualToString:@"3"]) {
-		
+	
+	if ([processName isEqualToString:@"Reddit"]){			
+		if ([versionArray[0] isEqualToString:@"4"]){
+			%init(Redditv4);	
+		} else if ([versionArray[0] isEqualToString:@"3"]) {
+			%init(Redditv3);
+		}
 	}
-
 }
 
 

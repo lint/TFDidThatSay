@@ -1,12 +1,8 @@
 
+/* ---- Reddit v4 ---- */
+
 
 /* -- Comment Interfaces -- */
-
-
-@interface Comment 
-@property(assign,nonatomic) id bodyRichTextAttributed;
-@property(assign,nonatomic) id pk;
-@end
 
 @interface CommentTreeNode
 @property(assign,nonatomic) id comment;
@@ -14,7 +10,6 @@
 //custom elements
 @property(assign,nonatomic) id commentTreeHeaderNode;
 @property(assign,nonatomic) id commentTreeCommandBarNode;
-@property(assign,nonatomic) BOOL isLoadingArchivedComment;
 @end
 
 @interface CommentTreeDisplayNode
@@ -44,9 +39,7 @@
 -(id)animationControllerForDismissedController:(id) arg1;
 @end
 
-
 /* -- Post Interfaces -- */
-
 
 @interface Post
 @property(assign,nonatomic) id author;
@@ -118,22 +111,58 @@
 +(id) sharedSettings;
 @end
 
-
-/* -- ActivityIndicator Interfaces -- */
-
-
 @interface AccountManager
 @property(assign,nonatomic) id defaults;
 +(id) sharedManager;
+@end
+
+/* ---- Reddit v3 ---- */
+
+
+/* -- Comment Interfaces -- */
+
+@interface CommentCell : UIView
+-(id) delegate;
+-(id) comment;
+-(id) commentView;
 @end
 
-@interface _ASCollectionViewCell
-@property(assign,nonatomic) id node;
+@interface CommentView
+-(void) configureSubviews;
+-(void) layoutSubviews;
+-(id) commandView;
+-(id) comment;
+-(id) delegate;
 @end
 
-@interface CellDisplayNodeWrapper
-@property(assign,nonatomic) id contentNode; 
+@interface CommentCommandView
+@property (nonatomic, assign) id undeleteButton;
+-(id)overflowButton;
+-(id) comment;
+-(id) delegate;
+@end
+
+@interface CommentsViewController
+-(void) reloadCommentsWithNewCommentsHighlight:(BOOL) arg1 autoScroll:(BOOL) arg2 animated:(BOOL) arg3;
+-(void)updateFloatingViews;
+@end
+
+/* -- Other Interfaces -- */
+
+@interface MarkDownParser
++(id)attributedStringFromMarkdownString:(id)arg1;
 @end
 
 
 
+/* ---- Reddit v3 & v4 ---- */
+
+
+@interface Comment
+//v4 
+@property(assign,nonatomic) id bodyRichTextAttributed;
+@property(assign,nonatomic) id pk;
+
+//v3
+-(id)pkWithoutPrefix;
+@end

@@ -1,9 +1,9 @@
-ARCHS = armv7 armv7s arm64 arm64e
+ARCHS = arm64
 
 include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = tfdidthatsay
-tfdidthatsay_FILES = Tweak.xm
+tfdidthatsay_FILES = $(wildcard tweak/*.xm)
 #tfdidthatsay_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/tweak.mk

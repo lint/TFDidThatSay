@@ -1,1 +1,8 @@
-{ Filter = { Bundles = ( "com.reddit.Reddit" ); }; }
+{
+    Filter =     {
+        Bundles =         (
+            "com.reddit.Reddit",
+            "com.christianselig.Apollo"
+        );
+    };
+}
