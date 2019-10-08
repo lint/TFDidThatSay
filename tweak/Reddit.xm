@@ -72,16 +72,16 @@
 			NSString *body = @"[body]";
 
 			if (data != nil && error == nil){
-				
 				id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-				   
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-				   
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[comment was unable to be archived]";
+				if ([[jsonData objectForKey:@"data"] count] != 0){
+					author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
+					body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
+					if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
+						body = @"[pushshift was unable to archive this]";
+					}
+				} else {
+					body = @"[pushshift has not archived this yet]";
 				}
-				
 			} else if (error != nil || data == nil){
 				body = @"[an error occured]";
 			}
@@ -188,21 +188,21 @@
 				
 				NSString *author = @"[author]";
 				NSString *body = @"[body]";
-
+				
 				if (data != nil && error == nil){
-					
 					id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-					   
-					author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-					body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-					   
-					if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-						body = @"[comment was unable to be archived]";
+					if ([[jsonData objectForKey:@"data"] count] != 0){
+						author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
+						body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
+						if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
+							body = @"[pushshift was unable to archive this]";
+						} 
+					} else {
+						body = @"[pushshift has not archived this yet]";
 					}
-					
 				} else if (error != nil || data == nil){
 					body = @"[an error occured]";
-				}			
+				}
 				
 				id themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 				id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
