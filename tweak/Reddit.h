@@ -71,10 +71,15 @@
 @interface FeedPostDetailCellNode
 @property(assign,nonatomic) id textNode;
 @property(assign,nonatomic) id delegate;
+@property(assign,nonatomic) id contentNode;
 @end
 
 @interface FeedPostDetailDelegator
 @property(assign,nonatomic) id viewController;
+@end
+
+@interface FeedPostContentNode
+-(void) configureSelfTextNode;
 @end
 
 

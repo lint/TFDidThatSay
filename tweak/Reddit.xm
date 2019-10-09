@@ -228,9 +228,12 @@
 				[post setAuthor:author];
 				[post setValue:body forKey:@"selfText"];
 				
-			
-				[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
-				
+				if ([[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."][1] integerValue] >= 44){
+					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
+				} else {
+					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
+				}
+							
 				[request release];
 				[queue release];
 				[bodyMutableAttributedText release];
