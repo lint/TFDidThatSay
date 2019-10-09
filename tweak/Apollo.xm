@@ -201,6 +201,7 @@ NSDictionary* apolloBodyAttributes = nil;
 		CGFloat centerHeight = [postInfoNode frame].origin.y + ([ageNode frame].size.height + [ageNode frame].origin.y * 2) / 2.0f;
 		CGFloat buttonXPos = [postInfoNode frame].origin.x + [postInfoNode frame].size.width - imageSize;
 		
+		//Compiling with DEBUG=0 causes this to break the app, I have no idea why. 
 		[[self undeleteButton] setFrame:CGRectMake(buttonXPos, centerHeight - (imageSize / 2), imageSize, imageSize)];
 	}
 }
