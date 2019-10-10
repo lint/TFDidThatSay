@@ -16,8 +16,7 @@
 -(void) calculatedLayoutDidChange;
 
 //custom element
-@property(assign,nonatomic) id undeleteButton;
-
+@property(strong,nonatomic) id undeleteButton;
 @end
 
 /* -- Post Interfaces -- */
@@ -31,7 +30,7 @@
 @end
 
 @interface ApolloCommentsHeaderCellNode
-@property(assign, nonatomic) id undeleteButton;
+@property(strong, nonatomic) id undeleteButton;
 @end
 
 /* -- Other Interfaces -- */

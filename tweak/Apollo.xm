@@ -3,16 +3,20 @@
 
 %group Apollo
 
-%hook ApolloApolloButtonNode
-%end
-
+const NSDictionary* settings = [[NSDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.lint.undelete.prefs.plist"];
 
 NSDictionary* apolloBodyAttributes = nil;
 
+%hook ApolloApolloButtonNode
+%end
 
 %hook RKComment
 
 -(BOOL) isDeleted{
+	return NO;
+}
+
+-(BOOL) isModeratorRemoved{
 	return NO;
 }
 %end
@@ -30,10 +34,12 @@ NSDictionary* apolloBodyAttributes = nil;
 
 
 %hook ApolloCommentCellNode
-%property(assign,nonatomic) id undeleteButton;
+%property(strong,nonatomic) id undeleteButton;
 
 %new
--(void) didTapUndeleteButton{
+-(void) didTapUndeleteButton:(id) sender{
+	
+	[sender setEnabled:NO];
 
 	id bodyNode = MSHookIvar<id>(self, "bodyNode");
 	id authorNode = MSHookIvar<id>(self, "authorNode");
@@ -77,48 +83,64 @@ NSDictionary* apolloBodyAttributes = nil;
 		
 		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
 		
+		[sender setEnabled:YES];
+		
 	}];
 }
 
 -(void) didLoad {
 	%orig;
 	
-	CGFloat imageSize = 20.0f;
-
-	UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-	[undeleteButton addTarget:self action:@selector(didTapUndeleteButton) forControlEvents:UIControlEventTouchUpInside];
-	undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
+	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-	UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-	[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
+	id isDeletedOnly = [settings valueForKey:@"isApolloDeletedCommentsOnly"];
+	
+	if (([isDeletedOnly isEqual:@1] && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || [isDeletedOnly isEqual:@0] ) {
+	
+		CGFloat imageSize = 20.0f;
 
-	[[self view] addSubview:undeleteButton];
-	[self setUndeleteButton:undeleteButton];
+		UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+		[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
+		undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
+		
+		UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+		[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
+
+		[[self view] addSubview:undeleteButton];
+		[self setUndeleteButton:undeleteButton];
+	
+	}
 }
 
 -(void) _layoutSublayouts{
 	%orig;
 	
-	CGFloat imageSize = 20.0f;
+	if ([self undeleteButton]){
+	
+		CGFloat imageSize = 20.0f;
 
-	id moreNode = MSHookIvar<id>(self, "moreOptionsNode");
-	id ageNode = MSHookIvar<id>(self, "ageNode");
+		id moreNode = MSHookIvar<id>(self, "moreOptionsNode");
+		id ageNode = MSHookIvar<id>(self, "ageNode");
 
-	CGRect nodeFrame = [moreNode frame];
-	CGFloat centerHeight = (nodeFrame.size.height + nodeFrame.origin.y * 2) / 2.0f;
-	CGFloat nodeSpacing =[ageNode frame].origin.x - nodeFrame.origin.x - nodeFrame.size.width;
+		CGRect nodeFrame = [moreNode frame];
+		CGFloat centerHeight = (nodeFrame.size.height + nodeFrame.origin.y * 2) / 2.0f;
+		CGFloat nodeSpacing =[ageNode frame].origin.x - nodeFrame.origin.x - nodeFrame.size.width;
 
-	[[self undeleteButton] setFrame:CGRectMake(nodeFrame.origin.x - imageSize - nodeSpacing, centerHeight - (imageSize / 2), imageSize, imageSize)];
+		[[self undeleteButton] setFrame:CGRectMake(nodeFrame.origin.x - imageSize - nodeSpacing, centerHeight - (imageSize / 2), imageSize, imageSize)];
+		
+	}
 }
 
 %end
 
 
 %hook ApolloCommentsHeaderCellNode
-%property(assign, nonatomic) id undeleteButton;
+%property(strong, nonatomic) id undeleteButton;
 
 %new
--(void) didTapUndeleteButton{
+-(void) didTapUndeleteButton:(id) sender{
+	
+	[sender setEnabled:NO];
 
 	id bodyNode = MSHookIvar<id>(self, "bodyNode");
 	id postInfoNode = MSHookIvar<id>(self, "postInfoNode");
@@ -165,6 +187,8 @@ NSDictionary* apolloBodyAttributes = nil;
 		
 		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
 		
+		[sender setEnabled:YES];
+		
 	}];
 	
 }
@@ -177,7 +201,7 @@ NSDictionary* apolloBodyAttributes = nil;
 		CGFloat imageSize = 20.0f;
 
 		UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-		[undeleteButton addTarget:self action:@selector(didTapUndeleteButton) forControlEvents:UIControlEventTouchUpInside];
+		[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
 		
 		UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 		[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
@@ -201,7 +225,6 @@ NSDictionary* apolloBodyAttributes = nil;
 		CGFloat centerHeight = [postInfoNode frame].origin.y + ([ageNode frame].size.height + [ageNode frame].origin.y * 2) / 2.0f;
 		CGFloat buttonXPos = [postInfoNode frame].origin.x + [postInfoNode frame].size.width - imageSize;
 		
-		//Compiling with DEBUG=0 causes this to break the app, I have no idea why. 
 		[[self undeleteButton] setFrame:CGRectMake(buttonXPos, centerHeight - (imageSize / 2), imageSize, imageSize)];
 	}
 }
@@ -211,10 +234,10 @@ NSDictionary* apolloBodyAttributes = nil;
 
 
 %ctor {
+	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	
 	if ([processName isEqualToString:@"Apollo"]){
 		%init(Apollo, ApolloCommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), ApolloCommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"));
 	}
 }
-

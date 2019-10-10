@@ -3,52 +3,9 @@
 
 %group Narwhal
 
-UIAlertController* recreateActionSheet(id controller, id comment, NSInteger commentIndex){
-	
-	UIAlertController* alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:nil];
-	
-	UIAlertAction* pmAction = [UIAlertAction actionWithTitle:[NSString stringWithFormat:@"private message %@", [comment author]] style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetPrivateMessage:comment];}];
-	UIAlertAction* viewProfileAction = [UIAlertAction actionWithTitle:@"view profile" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetViewProfile:comment];}];
-	UIAlertAction* shareAction = [UIAlertAction actionWithTitle:@"share comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetShareComment:comment];}];
-	UIAlertAction* copyAction = [UIAlertAction actionWithTitle:@"copy text" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetCopyCommentText:comment];}];
-	UIAlertAction* reportAction = [UIAlertAction actionWithTitle:@"report comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetReportComment:comment];}];
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"cancel" style:UIAlertActionStyleCancel handler:nil];
-	
-	[alert addAction:pmAction];
-	[alert addAction:viewProfileAction];
-	[alert addAction:shareAction];
-	[alert addAction:copyAction];
-	
-	if ([comment isSaved]){
-		UIAlertAction* unsaveAction = [UIAlertAction actionWithTitle:@"unsave comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetUnsaveComment:comment index:commentIndex];}];
-		[alert addAction:unsaveAction];
-		
-	} else {
-		UIAlertAction* saveAction = [UIAlertAction actionWithTitle:@"save comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetSaveComment:comment index:commentIndex];}];
-		[alert addAction:saveAction];
-	}
-	
-	if ([[[comment parentID] componentsSeparatedByString:@"_"][0] isEqualToString:@"t1"]){
-		UIAlertAction* viewParentAction = [UIAlertAction actionWithTitle:@"view parent" style: nil handler:^(UIAlertAction* action){[controller _handleActionSheetViewParent:comment];}];
-		[alert addAction:viewParentAction];
-	}
-	
-	if ([[comment author] isEqualToString:[[%c(NRTAuthManager) sharedManager] currentUsername]]) {
-		UIAlertAction* editAction = [UIAlertAction actionWithTitle:@"edit comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetEditComment:comment];}];
-		UIAlertAction* deleteAction = [UIAlertAction actionWithTitle:@"delete comment" style:nil handler:^(UIAlertAction* action){[controller _handleActionSheetDeleteComment:comment];}];
-		
-		[alert addAction:editAction];
-		[alert addAction:deleteAction];
-	}
-	
-	[alert addAction:reportAction];
-	[alert addAction:cancelAction];
-		
-	UIAlertAction* undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){[controller handleUndeleteCommentAction:comment];}];
-	[alert addAction:undeleteAction];
-	
-	return alert;
-}
+BOOL shouldHaveUndeleteAction = NO;
+id tfComment;
+id tfController;
 
 void getUndeleteCommentData(id controller, id comment){
 	
@@ -71,12 +28,6 @@ void getUndeleteCommentData(id controller, id comment){
 				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
 					body = @"[pushshift was unable to archive this]";
 				}
-				if (!body){
-					body = @"[wtf]";
-				}
-				if (!author){
-					author = @"[wtf]";
-				}
 			} else {
 				body = @"[pushshift has not archived this yet]";
 			}
@@ -88,6 +39,33 @@ void getUndeleteCommentData(id controller, id comment){
 	}];
 	
 }
+
+
+
+%hook UIViewController
+
+-(void) presentViewController:(id) arg1 animated:(BOOL) arg2 completion:(id) arg3{
+	
+	if ([arg1 isKindOfClass:[UIAlertController class]] && shouldHaveUndeleteAction){
+		
+		UIAlertAction* undeleteAction;
+		
+		if (tfComment){
+			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){getUndeleteCommentData(tfController, tfComment);}];
+		} else {
+			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){[tfController handleUndeletePostAction];}];
+		}
+		
+		[arg1 addAction:undeleteAction];
+		
+	}
+	
+	%orig;
+}
+
+%end
+
+
 
 
 %hook NRTLinkViewController
@@ -117,11 +95,6 @@ void getUndeleteCommentData(id controller, id comment){
 	[self setLinkText:postBodyAttributedString];
 		
 	[[self tableView] reloadData];
-}
-
-%new
--(void) handleUndeleteCommentAction:(id) comment{
-	getUndeleteCommentData(self, comment);
 }
 
 %new
@@ -158,8 +131,6 @@ void getUndeleteCommentData(id controller, id comment){
 		[self performSelectorOnMainThread:@selector(completeUndeletePost:) withObject:@{@"body":body, @"author":author, @"post":post} waitUntilDone:NO];
 		
 	}];
-	
-	
 }
 
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
@@ -168,66 +139,32 @@ void getUndeleteCommentData(id controller, id comment){
 		
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
 		
-			id comment = [arg1 comment];
-			NSInteger commentIndex = [[[self commentsManager] comments] indexOfObject:comment];
+			tfComment = [arg1 comment];
+			tfController = self;
+			shouldHaveUndeleteAction = YES;
 			
-			UIAlertController* alert = recreateActionSheet(self, comment, commentIndex);			
-			
-			[self presentViewController:alert animated:YES completion:nil];
-		
-		} else {
-			%orig;
-		}
-	} else {
-		%orig;
-	}
+		} 
+	} 
+	
+	%orig;
+	
+	shouldHaveUndeleteAction = NO;
 }
 
 
 -(void) _dotsButtonTouched:(id) arg1{
 	
-	id post = [self link];
-	BOOL shouldHaveUndeleteAction = NO;
-	
-	UIAlertController* alert = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:nil];
-	
-	UIAlertAction* undeletePostAction;
-	
-	UIAlertAction* sharePostAction = [UIAlertAction actionWithTitle:@"share reddit post" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetSharePost];}];
-	UIAlertAction* sortCommentsAction = [UIAlertAction actionWithTitle:@"sort comments" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetSortComments];}];
-	UIAlertAction* refreshCommentsAction = [UIAlertAction actionWithTitle:@"refresh comments" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetRefreshComments];}];
-	UIAlertAction* reportPostAction = [UIAlertAction actionWithTitle:@"report post" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetReportPost];}];
-	UIAlertAction* cancelAction = [UIAlertAction actionWithTitle:@"cancel" style:UIAlertActionStyleCancel handler:nil];
-	
-	[alert addAction:sharePostAction];
-	[alert addAction:sortCommentsAction];
-	[alert addAction:refreshCommentsAction];
-	
 	if ([self linkTextOffscreenCell]){
-		UIAlertAction* refreshPostAction = [UIAlertAction actionWithTitle:@"refresh post" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetRefreshPost];}];
-		[alert addAction:refreshPostAction];
 		
-		undeletePostAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){[self handleUndeletePostAction];}];
+		tfController = self;
+		tfComment = nil;
 		shouldHaveUndeleteAction = YES;
-	}
-	
-	if ([[post author] isEqualToString:[[%c(NRTAuthManager) sharedManager] currentUsername]]){
-		UIAlertAction* editPostAction = [UIAlertAction actionWithTitle:@"edit post" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetEditPost];}];
-		UIAlertAction* deletePostAction = [UIAlertAction actionWithTitle:@"delete post" style:nil handler:^(UIAlertAction* action){[self _handleActionSheetDeletePost];}];
 		
-		[alert addAction:editPostAction];
-		[alert addAction:deletePostAction];
 	}
 	
-	[alert addAction:reportPostAction];
-	[alert addAction:cancelAction];
+	%orig;
 	
-	if (shouldHaveUndeleteAction){
-		[alert addAction:undeletePostAction];
-	}
-	
-	[self presentViewController:alert animated:YES completion:nil];
-	
+	shouldHaveUndeleteAction = NO;
 }
 
 %end
@@ -249,30 +186,22 @@ void getUndeleteCommentData(id controller, id comment){
 	}
 }
 
-%new
--(void) handleUndeleteCommentAction:(id) comment{
-	getUndeleteCommentData(self, comment);
-}
-
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
 
 	if (arg2 == 2){
 		
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
-		
-			id comment = [arg1 comment];
-			NSInteger commentIndex = [[[self commentsManager] comments] indexOfObject:comment];
 			
-			UIAlertController* alert = recreateActionSheet(self, comment, commentIndex);	
-			
-			[[self parentController]  presentViewController:alert animated:YES completion:nil];
+			tfComment = [arg1 comment];
+			tfController = self;
+			shouldHaveUndeleteAction = YES;
 		
-		} else {
-			%orig;
-		}
-	} else {
-		%orig;
-	}
+		} 
+	} 
+	
+	%orig;
+	
+	shouldHaveUndeleteAction = NO;
 }
 
 %end
