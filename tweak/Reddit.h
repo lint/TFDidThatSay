@@ -107,6 +107,13 @@
 @end
 
 @interface ThemeManager
+
+// >= 4.45.0
+@property(assign,nonatomic) id darkTheme;
+@property(assign,nonatomic) id lightTheme;
+-(id) initWithAppSettings:(id) arg1;
+
+// < 4.45.0
 @property(assign,nonatomic) id dayTheme;
 @property(assign,nonatomic) id nightTheme;
 -(id) initWithTraitCollection:(id) arg1 appSettings:(id) arg2;

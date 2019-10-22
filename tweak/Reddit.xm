@@ -86,16 +86,34 @@
 				body = @"[an error occured]";
 			}
 
-			id themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-			id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+			
+			id themeManager;
+			id isNightMode;
 			id textColor;
 			
-			if (isNightMode) {
-				textColor = [[themeManager nightTheme] bodyTextColor];
-			} else{
-				textColor = [[themeManager dayTheme] bodyTextColor];
-			}
-			
+			if ([appVersion[1] integerValue] >= 45){
+				themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+				
+				if (isNightMode) {
+					textColor = [[themeManager darkTheme] bodyTextColor];
+				} else{
+					textColor = [[themeManager lightTheme] bodyTextColor];
+				}
+				
+			} else {
+				themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+				
+				if (isNightMode) {
+					textColor = [[themeManager nightTheme] bodyTextColor];
+				} else{
+					textColor = [[themeManager dayTheme] bodyTextColor];
+				}
+			}				
+
 			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
 			[bodyMutableAttributedText beginEditing];
@@ -202,17 +220,34 @@
 					}
 				} else if (error != nil || data == nil){
 					body = @"[an error occured]";
-				}
+				}				
 				
-				id themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-				id isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+				NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+				
+				id themeManager;
+				id isNightMode;
 				id textColor;
 				
-				if (isNightMode) {
-					textColor = [[themeManager nightTheme] bodyTextColor];
-				} else{
-					textColor = [[themeManager dayTheme] bodyTextColor];
-				}
+				if ([appVersion[1] integerValue] >= 45){
+					themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+					
+					if (isNightMode) {
+						textColor = [[themeManager darkTheme] bodyTextColor];
+					} else{
+						textColor = [[themeManager lightTheme] bodyTextColor];
+					}
+					
+				} else {
+					themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+					
+					if (isNightMode) {
+						textColor = [[themeManager nightTheme] bodyTextColor];
+					} else{
+						textColor = [[themeManager dayTheme] bodyTextColor];
+					}
+				}				
 
 				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
@@ -228,12 +263,12 @@
 				[post setAuthor:author];
 				[post setValue:body forKey:@"selfText"];
 				
-				if ([[[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."][1] integerValue] >= 44){
+				if ([appVersion[1] integerValue] >= 44){
 					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
 				} else {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 				}
-							
+				
 				[request release];
 				[queue release];
 				[bodyMutableAttributedText release];
