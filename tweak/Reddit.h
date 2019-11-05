@@ -1,3 +1,34 @@
+/* ---- Reddit v3 & v4 ---- */
+
+/* -- Comment Interfaces -- */
+
+@interface Comment
+//v4 
+@property(strong,nonatomic) id pk;
+@property(strong, nonatomic) NSString *bodyText;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) id bodyRichTextAttributed;
+@property(strong, nonatomic) id bodyAttributedText;
+
+//v3
+-(id)pkWithoutPrefix;
+@end
+
+@interface CommentsViewController : NSObject
+-(void) reloadCommentsWithNewCommentsHighlight:(BOOL) arg1 autoScroll:(BOOL) arg2 animated:(BOOL) arg3;
+-(void) reloadCommentsSection:(BOOL) arg1;
+-(void) reloadPostSection:(BOOL) arg1;
+-(void) feedPostViewDidUpdatePost:(id) arg1 shouldReloadFeed:(BOOL) arg2;
+-(void) updateFloatingViews;
+@end
+
+@interface CommentActionSheetViewController : UIViewController
+@property(strong,nonatomic) Comment *comment;
+@property(strong,nonatomic) id commentTreeNode;
+@property(strong,nonatomic) CommentsViewController *commentActionSheetDelegate;
+-(id)animationControllerForDismissedController:(id) arg1;
+@end
+
 
 /* ---- Reddit v4 ---- */
 
@@ -5,98 +36,100 @@
 /* -- Comment Interfaces -- */
 
 @interface CommentTreeNode
-@property(assign,nonatomic) id comment;
+@property(strong,nonatomic) Comment *comment;
 
 //custom elements
-@property(assign,nonatomic) id commentTreeHeaderNode;
-@property(assign,nonatomic) id commentTreeCommandBarNode;
+@property(strong,nonatomic) id commentTreeHeaderNode;
+@property(strong,nonatomic) id commentTreeCommandBarNode;
 @end
 
 @interface CommentTreeDisplayNode
-@property(assign,nonatomic) id commentNode;
+@property(strong,nonatomic) id commentNode;
 @end
 
 @interface CommentTreeHeaderNode
-@property(assign,nonatomic) id commentTreeNode;
+@property(strong,nonatomic) id commentTreeNode;
 -(void) updateContentViewsForData:(id)arg1;
 @end
 
 @interface CommentTreeCommandBarNode
-@property(assign,nonatomic) id commentTreeNode;
-@property(assign,nonatomic) id delegate;
-@property(assign,nonatomic) UIView* view;
-@property(assign,nonatomic) id overflowButtonNode;
+@property(strong,nonatomic) id commentTreeNode;
+@property(strong,nonatomic) id delegate;
+@property(strong,nonatomic) UIView* view;
+@property(strong,nonatomic) id overflowButtonNode;
 @property(assign,nonatomic) CGRect frame;
-
-//custom elements
-@property(assign,nonatomic) id activityIndicator;
-@property(assign,nonatomic) id undeleteButton;
 @end
 
-@interface CommentActionSheetViewController : UIViewController
-@property(assign,nonatomic) id comment;
-@property(assign,nonatomic) id commentTreeNode;
--(id)animationControllerForDismissedController:(id) arg1;
+@interface CommentTreeHeaderView
+@property(strong,nonatomic) id commentTreeNode;
+
+-(void) updateContentViewsForData:(id) arg1;
 @end
 
 /* -- Post Interfaces -- */
 
 @interface Post
-@property(assign,nonatomic) id author;
+@property(strong,nonatomic) NSString *author;
+@property(strong,nonatomic) NSString *selfText;
+@property(strong,nonatomic) id selfTextAttributed;
+@property(strong,nonatomic) id selfPostRichTextAttributed;
+@property(strong,nonatomic) id previewFeedPostTextString;
 @property(assign,nonatomic) BOOL isSelfPost;
-@property(assign,nonatomic) id selfText;
-@property(assign,nonatomic) id selfTextAttributed;
-@property(assign,nonatomic) id selfPostRichTextAttributed;
+@property(strong,nonatomic) NSString *pk;
 @end
 
 @interface PostDetailViewController
-@property(assign,nonatomic) id selfTextNode;
+@property(strong,nonatomic) id selfTextNode;
 -(void) configureSelfTextNode;
 
 //custom elements
-@property(assign,nonatomic) id feedPostTextWithThumbnailNode;
-@property(assign,nonatomic) id feedPostDetailCellNode;
+@property(strong,nonatomic) id feedPostTextWithThumbnailNode;
+@property(strong,nonatomic) id feedPostDetailCellNode;
 @end
 
 @interface PostActionSheetViewController : UIViewController
-@property(assign,nonatomic) id post;
-@property(assign,nonatomic) id postActionSheetDelegate;
+@property(strong,nonatomic) Post *post;
+@property(strong,nonatomic) id postActionSheetDelegate;
 @end
 
 @interface PostDetailNavigationItemHandler
-@property(assign,nonatomic) id controller;
-@property(assign,nonatomic) id presenter;
+@property(strong,nonatomic) id controller;
+@property(strong,nonatomic) id presenter;
 @end
 
 @interface FeedPostDetailCellNode
-@property(assign,nonatomic) id textNode;
-@property(assign,nonatomic) id delegate;
-@property(assign,nonatomic) id contentNode;
+@property(strong,nonatomic) id textNode;
+@property(strong,nonatomic) id delegate;
+@property(strong,nonatomic) id contentNode;
+@property(strong,nonatomic) id titleNode;
+@end
+
+@interface FeedPostTitleNode
+@property(strong,nonatomic) id delegate;
+-(void) configureNodes;
 @end
 
 @interface FeedPostDetailDelegator
-@property(assign,nonatomic) id viewController;
+@property(strong,nonatomic) id viewController;
 @end
 
 @interface FeedPostContentNode
 -(void) configureSelfTextNode;
 @end
 
-
 /* -- Other Interfaces -- */
 
-
 @interface RichTextDisplayNode
-@property(assign,nonatomic) id attributedText;
+@property(strong,nonatomic) id attributedText;
 @end
 
 @interface RUIActionSheetItem : NSObject
-@property(assign,nonatomic) id leftIconImage;
+@property(strong,nonatomic) id leftIconImage;
 -(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
 @end
 
 @interface RUITheme
-@property(assign,nonatomic) id bodyTextColor;
+@property(strong,nonatomic) id bodyTextColor;
 @end
 
 @interface NSAttributedStringMarkdownParser
@@ -108,15 +141,18 @@
 
 @interface ThemeManager
 
++(id) sharedManager;
+
 // >= 4.45.0
-@property(assign,nonatomic) id darkTheme;
-@property(assign,nonatomic) id lightTheme;
+@property(strong,nonatomic) id darkTheme;
+@property(strong,nonatomic) id lightTheme;
 -(id) initWithAppSettings:(id) arg1;
 
 // < 4.45.0
-@property(assign,nonatomic) id dayTheme;
-@property(assign,nonatomic) id nightTheme;
+@property(strong,nonatomic) id dayTheme;
+@property(strong,nonatomic) id nightTheme;
 -(id) initWithTraitCollection:(id) arg1 appSettings:(id) arg2;
+
 @end
 
 @interface AppSettings
@@ -148,33 +184,14 @@
 @end
 
 @interface CommentCommandView
-@property (nonatomic, assign) id undeleteButton;
+@property (strong, nonatomic) id undeleteButton;
 -(id)overflowButton;
 -(id) comment;
 -(id) delegate;
-@end
-
-@interface CommentsViewController
--(void) reloadCommentsWithNewCommentsHighlight:(BOOL) arg1 autoScroll:(BOOL) arg2 animated:(BOOL) arg3;
--(void)updateFloatingViews;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface MarkDownParser
 +(id)attributedStringFromMarkdownString:(id)arg1;
-@end
-
-
-
-/* ---- Reddit v3 & v4 ---- */
-
-
-@interface Comment
-//v4 
-@property(assign,nonatomic) id bodyRichTextAttributed;
-@property(assign,nonatomic) id pk;
-
-//v3
--(id)pkWithoutPrefix;
 @end
