@@ -15,6 +15,7 @@
 @end
 
 @interface CommentsViewController : NSObject
+@property(strong,nonatomic) id postData;
 -(void) reloadCommentsWithNewCommentsHighlight:(BOOL) arg1 autoScroll:(BOOL) arg2 animated:(BOOL) arg3;
 -(void) reloadCommentsSection:(BOOL) arg1;
 -(void) reloadPostSection:(BOOL) arg1;
@@ -124,6 +125,13 @@
 @end
 
 @interface RUIActionSheetItem : NSObject
+@property(strong,nonatomic) id leftIconImage;
+-(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
+@end
+
+
+@interface ActionSheetItem : NSObject
+// <= 4.17
 @property(strong,nonatomic) id leftIconImage;
 -(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
 @end
