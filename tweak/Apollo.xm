@@ -1,9 +1,12 @@
 
+#import <Cephei/HBPreferences.h>
 #import "Apollo.h"
 
-%group Apollo
+HBPreferences *apolloPrefs;
+BOOL isApolloDeletedCommentsOnly;
+CGFloat apolloRequestTimeoutValue;
 
-const NSDictionary* settings = [[NSDictionary alloc] initWithContentsOfFile:@"/var/mobile/Library/Preferences/com.lint.undelete.prefs.plist"];
+%group Apollo
 
 NSDictionary* apolloBodyAttributes = nil;
 
@@ -50,7 +53,8 @@ NSDictionary* apolloBodyAttributes = nil;
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];		
+	[request setHTTPMethod:@"GET"];
+	[request setTimeoutInterval:[apolloPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 	
@@ -69,7 +73,7 @@ NSDictionary* apolloBodyAttributes = nil;
 				body = @"[pushshift has not archived this yet]";
 			}
 		} else if (error != nil || data == nil){
-			body = @"[an error occured]";
+			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 		}
 		
 		id prevAuthorAttributedString = [authorTextNode attributedString];
@@ -93,9 +97,9 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-	id isDeletedOnly = [settings valueForKey:@"isApolloDeletedCommentsOnly"];
+	BOOL isDeletedOnly = [apolloPrefs boolForKey:@"isApolloDeletedCommentsOnly"];
 	
-	if (([isDeletedOnly isEqual:@1] && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || [isDeletedOnly isEqual:@0] ) {
+	if ((isDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isDeletedOnly) {
 	
 		CGFloat imageSize = 20.0f;
 
@@ -152,7 +156,8 @@ NSDictionary* apolloBodyAttributes = nil;
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];		
+	[request setHTTPMethod:@"GET"];
+	[request setTimeoutInterval:[apolloPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -171,7 +176,7 @@ NSDictionary* apolloBodyAttributes = nil;
 				body = @"[pushshift has not archived this yet]";
 			}
 		} else if (error != nil || data == nil){
-			body = @"[an error occured]";
+			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 		}
 		
 		//MSHookIvar<NSString*>(post, "_author") = author; //Crashes when clicking on author name. You will have to search the author name to go find the profile.
@@ -234,6 +239,10 @@ NSDictionary* apolloBodyAttributes = nil;
 
 
 %ctor {
+	
+	apolloPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
+	[apolloPrefs registerBool:&isApolloDeletedCommentsOnly default:YES forKey:@"isApolloDeletedCommentsOnly"];
+	[apolloPrefs registerDouble:&apolloRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	

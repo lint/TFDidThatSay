@@ -5,6 +5,8 @@ include $(THEOS)/makefiles/common.mk
 TWEAK_NAME = tfdidthatsay
 tfdidthatsay_FILES = $(wildcard tweak/*.xm)
 tweak/Narwhal.xm_CFLAGS = -fobjc-arc
+tfdidthatsay_EXTRA_FRAMEWORKS += Cephei
+
 
 include $(THEOS_MAKE_PATH)/tweak.mk
 

@@ -22,6 +22,32 @@
 			<key>label</key>
 			<string>Only display eye on deleted comments</string>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>The number of seconds before the request to pushshift will timeout and return an error.</string>
+			<key>isStaticText</key>
+			<true/>
+			<key>label</key>
+			<string>Request timeout (seconds)</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSSliderCell</string>
+			<key>default</key>
+			<integer>10</integer>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>requestTimeoutValue</string>
+			<key>max</key>
+			<string>60</string>
+			<key>min</key>
+			<string>5</string>
+			<key>showValue</key>
+			<true/>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>TFDidThatSay?</string>

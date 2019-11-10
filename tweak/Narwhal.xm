@@ -1,5 +1,9 @@
 
+#import <Cephei/HBPreferences.h>
 #import "Narwhal.h"
+
+HBPreferences *narwhalPrefs;
+CGFloat narwhalRequestTimeoutValue;
 
 %group Narwhal
 
@@ -13,7 +17,8 @@ void getUndeleteCommentData(id controller, id comment){
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];		
+	[request setHTTPMethod:@"GET"];
+	[request setTimeoutInterval:[narwhalPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 	
@@ -32,7 +37,7 @@ void getUndeleteCommentData(id controller, id comment){
 				body = @"[pushshift has not archived this yet]";
 			}
 		} else if (error != nil || data == nil){
-			body = @"[an error occured]";
+			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 		}
 		
 		[controller performSelectorOnMainThread:@selector(completeUndeleteComment:) withObject:@{@"body":body, @"author":author, @"comment":comment} waitUntilDone:NO];
@@ -106,7 +111,8 @@ void getUndeleteCommentData(id controller, id comment){
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];		
+	[request setHTTPMethod:@"GET"];
+	[request setTimeoutInterval:[narwhalPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -125,7 +131,7 @@ void getUndeleteCommentData(id controller, id comment){
 				body = @"[pushshift has not archived this yet]";
 			}
 		} else if (error != nil || data == nil){
-			body = @"[an error occured]";
+			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 		}
 		
 		[self performSelectorOnMainThread:@selector(completeUndeletePost:) withObject:@{@"body":body, @"author":author, @"post":post} waitUntilDone:NO];
@@ -142,7 +148,6 @@ void getUndeleteCommentData(id controller, id comment){
 			tfComment = [arg1 comment];
 			tfController = self;
 			shouldHaveUndeleteAction = YES;
-			
 		} 
 	} 
 	
@@ -159,7 +164,6 @@ void getUndeleteCommentData(id controller, id comment){
 		tfController = self;
 		tfComment = nil;
 		shouldHaveUndeleteAction = YES;
-		
 	}
 	
 	%orig;
@@ -209,6 +213,10 @@ void getUndeleteCommentData(id controller, id comment){
 %end
 
 %ctor {
+	
+	narwhalPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
+	[narwhalPrefs registerDouble:&narwhalRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
+	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 
 	if ([processName isEqualToString:@"narwhal"]){			

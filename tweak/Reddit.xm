@@ -1,5 +1,11 @@
 
+#import <Cephei/HBPreferences.h>
 #import "Reddit.h"
+
+HBPreferences *redditPrefs;
+CGFloat redditRequestTimeoutValue;
+
+NSArray *redditVersion;
 
 %group Reddit_v4_current
 
@@ -71,7 +77,8 @@
 		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];		
+		[request setHTTPMethod:@"GET"];
+		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -90,10 +97,8 @@
 					body = @"[pushshift has not archived this yet]";
 				}
 			} else if (error != nil || data == nil){
-				body = @"[an error occured]";
+				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 			}
-			
-			NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 			
 			NSMutableAttributedString *bodyMutableAttributedText;
 			
@@ -101,7 +106,7 @@
 			id isNightMode;
 			id textColor;
 			
-			if ([appVersion[1] integerValue] >= 45){
+			if ([redditVersion[1] integerValue] >= 45){
 				themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -113,8 +118,7 @@
 				
 				[themeManager release];
 				
-				
-			} else if ([appVersion[1] integerValue] >= 37){
+			} else if ([redditVersion[1] integerValue] >= 37){
 				themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -218,7 +222,8 @@
 			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];		
+			[request setHTTPMethod:@"GET"];
+			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];			
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -237,16 +242,14 @@
 						body = @"[pushshift has not archived this yet]";
 					}
 				} else if (error != nil || data == nil){
-					body = @"[an error occured]";
+					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 				}				
-				
-				NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 				
 				id themeManager;
 				id isNightMode;
 				id textColor;
 				
-				if ([appVersion[1] integerValue] >= 45){
+				if ([redditVersion[1] integerValue] >= 45){
 					themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -258,7 +261,7 @@
 					
 					[themeManager release];
 					
-				} else if ([appVersion[1] integerValue] >= 37){
+				} else if ([redditVersion[1] integerValue] >= 37){
 					themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -295,9 +298,9 @@
 				[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				
-				if ([appVersion[1] integerValue] >= 44){
+				if ([redditVersion[1] integerValue] >= 44){
 					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-				} else if ([appVersion[1] integerValue] >= 38) {
+				} else if ([redditVersion[1] integerValue] >= 38) {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 				} else {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
@@ -327,9 +330,8 @@
 
 %new 
 -(void) updatePostText{
-	NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 	
-	if ([appVersion[1] integerValue] >= 2){
+	if ([redditVersion[1] integerValue] >= 2){
 		[self reloadPostSection:YES];
 	} else {
 		[self feedPostViewDidUpdatePost:[self postData] shouldReloadFeed:NO];
@@ -351,9 +353,7 @@
 	
 	id undeleteItem;
 	
-	NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
-	
-	if ([appVersion[1] integerValue] >= 18) {
+	if ([redditVersion[1] integerValue] >= 18) {
 		undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
 	} else {
 		undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
@@ -378,7 +378,8 @@
 		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];		
+		[request setHTTPMethod:@"GET"];
+		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -397,7 +398,7 @@
 					body = @"[pushshift has not archived this yet]";
 				}
 			} else if (error != nil || data == nil){
-				body = @"[an error occured]";
+				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 			}
 			
 			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
@@ -430,7 +431,8 @@
 		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];		
+		[request setHTTPMethod:@"GET"];
+		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -449,10 +451,8 @@
 					body = @"[pushshift has not archived this yet]";
 				}
 			} else if (error != nil || data == nil){
-				body = @"[an error occured]";
+				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 			}
-			
-			NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 			
 			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
@@ -460,7 +460,7 @@
 			[comment setBodyText:body];
 			[comment setBodyAttributedText:bodyMutableAttributedText];
 			
-			if ([appVersion[1] integerValue] >= 12) {
+			if ([redditVersion[1] integerValue] >= 12) {
 				[comment setBodyRichTextAttributed:bodyMutableAttributedText];
 			}
 			
@@ -491,10 +491,8 @@
 		UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
 		
 		id undeleteItem;
-	
-		NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 		
-		if ([appVersion[1] integerValue] >= 18) {
+		if ([redditVersion[1] integerValue] >= 18) {
 			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
 		} else {
 			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
@@ -524,7 +522,8 @@
 			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];		
+			[request setHTTPMethod:@"GET"];	
+			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -543,7 +542,7 @@
 						body = @"[pushshift has not archived this yet]";
 					}
 				} else if (error != nil || data == nil){
-					body = @"[an error occured]";
+					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 				}				
 				
 				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
@@ -579,7 +578,8 @@
 			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];		
+			[request setHTTPMethod:@"GET"];
+			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -598,10 +598,8 @@
 						body = @"[pushshift has not archived this yet]";
 					}
 				} else if (error != nil || data == nil){
-					body = @"[an error occured]";
+					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 				}				
-				
-				NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 				
 				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 				
@@ -609,11 +607,11 @@
 				[post setSelfText:body];
 				[post setSelfTextAttributed:bodyMutableAttributedText];
 				
-				if ([appVersion[1] integerValue] >= 8) {
+				if ([redditVersion[1] integerValue] >= 8) {
 					[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				}
 				
-				if ([appVersion[1] integerValue] >= 15) {
+				if ([redditVersion[1] integerValue] >= 15) {
 					[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				} 
 				
@@ -718,17 +716,20 @@
 
 %ctor{
 	
+	redditPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
+	[redditPrefs registerDouble:&redditRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
+	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
-	NSArray* appVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 	
 	if ([processName isEqualToString:@"Reddit"]){			
-		if ([appVersion[0] isEqualToString:@"4"]){
-			if ([appVersion[1] integerValue] <= 32){
+		if ([redditVersion[0] isEqualToString:@"4"]){
+			if ([redditVersion[1] integerValue] <= 32){
 				%init(Reddit_v4_ios10);
 			} else{
 				%init(Reddit_v4_current);
 			}	
-		} else if ([appVersion[0] isEqualToString:@"3"]) {
+		} else if ([redditVersion[0] isEqualToString:@"3"]) {
 			%init(Reddit_v3);
 		}
 	}
