@@ -1,10 +1,9 @@
 
-#import <Cephei/HBPreferences.h>
 #import "Apollo.h"
 
-HBPreferences *apolloPrefs;
-BOOL isApolloDeletedCommentsOnly;
-CGFloat apolloRequestTimeoutValue;
+static BOOL isApolloDeletedCommentsOnly;
+static BOOL isApolloEnabled;
+static CGFloat pushshiftRequestTimeoutValue;
 
 %group Apollo
 
@@ -54,7 +53,7 @@ NSDictionary* apolloBodyAttributes = nil;
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
 	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:[apolloPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 	
@@ -97,9 +96,7 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-	BOOL isDeletedOnly = [apolloPrefs boolForKey:@"isApolloDeletedCommentsOnly"];
-	
-	if ((isDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isDeletedOnly) {
+	if ((isApolloDeletedCommentsOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isApolloDeletedCommentsOnly) {
 	
 		CGFloat imageSize = 20.0f;
 
@@ -157,7 +154,7 @@ NSDictionary* apolloBodyAttributes = nil;
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
 	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:[apolloPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -238,15 +235,45 @@ NSDictionary* apolloBodyAttributes = nil;
 %end
 
 
-%ctor {
+static void loadPrefs(){
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/User/Library/Preferences/com.lint.undelete.prefs.plist"];
 	
-	apolloPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
-	[apolloPrefs registerBool:&isApolloDeletedCommentsOnly default:YES forKey:@"isApolloDeletedCommentsOnly"];
-	[apolloPrefs registerDouble:&apolloRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
+	if (prefs){
+		
+		if ([prefs objectForKey:@"isApolloEnabled"] != nil) {
+			isApolloEnabled = [[prefs objectForKey:@"isApolloEnabled"] boolValue];
+		} else {
+			isApolloEnabled = YES;
+		}
+		
+		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
+			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
+		} else {
+			pushshiftRequestTimeoutValue = 10;
+		}
+		
+		if ([prefs objectForKey:@"isApolloDeletedCommentsOnly"] != nil) {
+			isApolloDeletedCommentsOnly = [[prefs objectForKey:@"isApolloDeletedCommentsOnly"] boolValue];
+		} else {
+			isApolloDeletedCommentsOnly = YES;
+		}
+	
+	} else {
+		isApolloEnabled = YES;
+		pushshiftRequestTimeoutValue = 10;
+		isApolloDeletedCommentsOnly = YES;
+	}	
+}
+
+
+%ctor {
+	loadPrefs();
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	
 	if ([processName isEqualToString:@"Apollo"]){
-		%init(Apollo, ApolloCommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), ApolloCommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"));
+		if (isApolloEnabled){
+			%init(Apollo, ApolloCommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), ApolloCommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"));
+		}
 	}
 }

@@ -1,9 +1,8 @@
 
-#import <Cephei/HBPreferences.h>
 #import "Reddit.h"
 
-HBPreferences *redditPrefs;
-CGFloat redditRequestTimeoutValue;
+static CGFloat pushshiftRequestTimeoutValue;
+static BOOL isRedditEnabled;
 
 NSArray *redditVersion;
 
@@ -78,7 +77,7 @@ NSArray *redditVersion;
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
 		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -223,7 +222,7 @@ NSArray *redditVersion;
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
 			[request setHTTPMethod:@"GET"];
-			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];			
+			[request setTimeoutInterval:pushshiftRequestTimeoutValue];			
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -379,7 +378,7 @@ NSArray *redditVersion;
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
 		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -432,7 +431,7 @@ NSArray *redditVersion;
 
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
 		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -523,7 +522,7 @@ NSArray *redditVersion;
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
 			[request setHTTPMethod:@"GET"];	
-			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+			[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -579,7 +578,7 @@ NSArray *redditVersion;
 
 			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
 			[request setHTTPMethod:@"GET"];
-			[request setTimeoutInterval:[redditPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+			[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 				
@@ -712,25 +711,47 @@ NSArray *redditVersion;
 %end
 
 
+static void loadPrefs(){
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/User/Library/Preferences/com.lint.undelete.prefs.plist"];
+	
+	if (prefs){
+		
+		if ([prefs objectForKey:@"isRedditEnabled"] != nil){
+			isRedditEnabled = [[prefs objectForKey:@"isRedditEnabled"] boolValue];
+		} else {
+			isRedditEnabled = YES;
+		}
+		
+		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
+			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
+		} else {
+			pushshiftRequestTimeoutValue = 10;
+		}
+		
+	} else {
+		isRedditEnabled = YES;
+		pushshiftRequestTimeoutValue = 10;
+	}
+}
 
 
 %ctor{
-	
-	redditPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
-	[redditPrefs registerDouble:&redditRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
+	loadPrefs();
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 	
-	if ([processName isEqualToString:@"Reddit"]){			
-		if ([redditVersion[0] isEqualToString:@"4"]){
-			if ([redditVersion[1] integerValue] <= 32){
-				%init(Reddit_v4_ios10);
-			} else{
-				%init(Reddit_v4_current);
-			}	
-		} else if ([redditVersion[0] isEqualToString:@"3"]) {
-			%init(Reddit_v3);
+	if ([processName isEqualToString:@"Reddit"]){
+		if (isRedditEnabled) {			
+			if ([redditVersion[0] isEqualToString:@"4"]){
+				if ([redditVersion[1] integerValue] <= 32){
+					%init(Reddit_v4_ios10);
+				} else{
+					%init(Reddit_v4_current);
+				}	
+			} else if ([redditVersion[0] isEqualToString:@"3"]) {
+				%init(Reddit_v3);
+			}
 		}
 	}
 }

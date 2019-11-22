@@ -1,9 +1,8 @@
 
-#import <Cephei/HBPreferences.h>
 #import "Narwhal.h"
 
-HBPreferences *narwhalPrefs;
-CGFloat narwhalRequestTimeoutValue;
+static BOOL isNarwhalEnabled;
+static CGFloat pushshiftRequestTimeoutValue;
 
 %group Narwhal
 
@@ -18,7 +17,7 @@ void getUndeleteCommentData(id controller, id comment){
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
 	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:[narwhalPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 	
@@ -112,7 +111,7 @@ void getUndeleteCommentData(id controller, id comment){
 
 	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
 	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:[narwhalPrefs doubleForKey:@"requestTimeoutValue" default:10]];
+	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
@@ -212,15 +211,40 @@ void getUndeleteCommentData(id controller, id comment){
 
 %end
 
-%ctor {
+
+static void loadPrefs(){
+	NSMutableDictionary *prefs = [[NSMutableDictionary alloc] initWithContentsOfFile:@"/User/Library/Preferences/com.lint.undelete.prefs.plist"];
 	
-	narwhalPrefs = [[HBPreferences alloc] initWithIdentifier:@"com.lint.undelete.prefs"];
-	[narwhalPrefs registerDouble:&narwhalRequestTimeoutValue default:10 forKey:@"requestTimeoutValue"];
+	if (prefs){
+		
+		if ([prefs objectForKey:@"isNarwhalEnabled"] != nil){
+			isNarwhalEnabled = [[prefs objectForKey:@"isNarwhalEnabled"] boolValue];
+		} else {
+			isNarwhalEnabled = YES;
+		}
+		
+		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
+			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
+		} else {
+			pushshiftRequestTimeoutValue = 10;
+		}
+		
+	} else {
+		isNarwhalEnabled = YES;
+		pushshiftRequestTimeoutValue = 10;
+	}	
+}
+
+
+%ctor {
+	loadPrefs();
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 
-	if ([processName isEqualToString:@"narwhal"]){			
-		%init(Narwhal);
+	if ([processName isEqualToString:@"narwhal"]){		
+		if (isNarwhalEnabled){
+			%init(Narwhal);
+		}
 	}
 }
 
