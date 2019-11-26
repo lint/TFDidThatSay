@@ -4,7 +4,7 @@
 static CGFloat pushshiftRequestTimeoutValue;
 static BOOL isRedditEnabled;
 
-NSArray *redditVersion;
+static NSArray *redditVersion;
 
 %group Reddit_v4_current
 
@@ -734,6 +734,10 @@ static void loadPrefs(){
 	}
 }
 
+static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+  loadPrefs();
+}
+
 
 %ctor{
 	loadPrefs();
@@ -742,7 +746,10 @@ static void loadPrefs(){
 	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 	
 	if ([processName isEqualToString:@"Reddit"]){
-		if (isRedditEnabled) {			
+		if (isRedditEnabled) {
+
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+			
 			if ([redditVersion[0] isEqualToString:@"4"]){
 				if ([redditVersion[1] integerValue] <= 32){
 					%init(Reddit_v4_ios10);

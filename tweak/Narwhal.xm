@@ -235,6 +235,10 @@ static void loadPrefs(){
 	}	
 }
 
+static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+  loadPrefs();
+}
+
 
 %ctor {
 	loadPrefs();
@@ -243,6 +247,9 @@ static void loadPrefs(){
 
 	if ([processName isEqualToString:@"narwhal"]){		
 		if (isNarwhalEnabled){
+			
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+			
 			%init(Narwhal);
 		}
 	}

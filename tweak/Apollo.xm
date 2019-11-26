@@ -265,6 +265,10 @@ static void loadPrefs(){
 	}	
 }
 
+static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo) {
+  loadPrefs();
+}
+
 
 %ctor {
 	loadPrefs();
@@ -273,6 +277,9 @@ static void loadPrefs(){
 	
 	if ([processName isEqualToString:@"Apollo"]){
 		if (isApolloEnabled){
+			
+			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
+			
 			%init(Apollo, ApolloCommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), ApolloCommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"));
 		}
 	}
