@@ -1,7 +1,7 @@
 
 /* -- Voteable Interfaces -- */
 
-@interface VoteableElement
+@interface VoteableElement : NSObject
 @property(strong, nonatomic) NSString *ident;
 @property(strong, nonatomic) NSString *author;
 @end
@@ -37,16 +37,17 @@
 @property(strong, nonatomic) Post *post;
 @end
 
+@interface CommentNode
+@property(strong, nonatomic) Comment *comment;
+@property(strong, nonatomic) Post *post;
+@end
+
 @interface CommentOptionsDrawerView
 @property(strong, nonatomic) NSMutableArray *buttons;
 @property(assign, nonatomic) BOOL isPostHeader;
 @property(strong, nonatomic) id delegate;
+@property(strong, nonatomic) id node;
 -(void) addButton:(id) arg1;
-
-//custom elements
-@property(strong, nonatomic) Comment *comment;
-@property(strong, nonatomic) Post *post;
-@property(strong, nonatomic) CommentPostHeaderNode *commentNode;
 @end
 
 /* -- Other Interfaces -- */

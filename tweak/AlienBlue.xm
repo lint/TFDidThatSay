@@ -8,41 +8,18 @@ static CGFloat pushshiftRequestTimeoutValue;
 
 %group AlienBlue
 
-%hook NCommentCell
-
--(void) setDrawerView:(id) arg1 {
-	[arg1 setComment:[self comment]];
-	%orig;
-}
-
-%end
-
-%hook NCommentPostHeaderCell
-
--(void) setDrawerView:(id) arg1 {
-	[arg1 setPost:[self post]];
-	[arg1 setCommentNode:[self node]];
-	%orig;
-}
-
-%end
-
-
 %hook CommentOptionsDrawerView
-%property(strong, nonatomic) Comment *comment;
-%property(strong, nonatomic) Post *post;
-%property(strong, nonatomic) CommentPostHeaderNode *commentNode;
 
 -(id) initWithNode:(id) arg1 {
 	id orig = %orig;
 	
 	NSString *body;
 	
-	if ([self post]) {
-		body = [[self post] selftext];
-	} else if ([self comment]){
-		body = [[self comment] body];
-	}
+	if ([self isPostHeader]) {
+		body = [[arg1 post] selftext];
+	} else {
+		body = [[(CommentNode *)arg1 comment] body];
+	} 
 	
 	if ((isAlienBlueDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isAlienBlueDeletedOnly) {
 	
@@ -52,9 +29,9 @@ static CGFloat pushshiftRequestTimeoutValue;
 		[undeleteButton setFrame:CGRectMake(0, 0, refSize.width, refSize.height)];
 		
 		if ([self isPostHeader]){
-			[undeleteButton addTarget:self action:@selector(didTapPostUndeleteButton) forControlEvents:UIControlEventTouchUpInside];
+			[undeleteButton addTarget:self action:@selector(didTapPostUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
 		} else {
-			[undeleteButton addTarget:self action:@selector(didTapCommentUndeleteButton) forControlEvents:UIControlEventTouchUpInside];
+			[undeleteButton addTarget:self action:@selector(didTapCommentUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
 		}
 		
 		if ([%c(Resources) isNight]) {
@@ -70,13 +47,14 @@ static CGFloat pushshiftRequestTimeoutValue;
 	}
 	
 	return orig;
-
 }
 
 %new 
--(void) didTapCommentUndeleteButton {
+-(void) didTapCommentUndeleteButton:(id) sender {
 	
-	Comment *comment = [self comment];
+	[sender setEnabled:NO];
+	
+	id comment = [[self node] comment];
 	
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
@@ -112,14 +90,18 @@ static CGFloat pushshiftRequestTimeoutValue;
 		[comment setBodyHTML:bodyHTML];
 		
 		[[self delegate] performSelectorOnMainThread:@selector(respondToStyleChange) withObject:nil waitUntilDone:NO];
+		
+		[sender setEnabled:YES];
 	}];
 }
 
 %new 
--(void) didTapPostUndeleteButton {
+-(void) didTapPostUndeleteButton:(id) sender {
 	
-	Post *post = [self post];
-	Comment *postComment = [[self commentNode] comment]; //Don't know why he used a comment to store info about a post, but it exists
+	[sender setEnabled:NO];
+	
+	id post = [[self node] post];
+	id postComment = [[self node] comment]; //Don't know why he used a comment to store info about a post, but it exists
 	
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
@@ -156,6 +138,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 		
 		[[self delegate] performSelectorOnMainThread:@selector(respondToStyleChange) withObject:nil waitUntilDone:NO];
 		
+		[sender setEnabled:YES];
 	}];
 }
 
