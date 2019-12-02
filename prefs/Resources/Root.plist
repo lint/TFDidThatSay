@@ -55,10 +55,26 @@
 			<string>Enable Narwhal</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isAlienBlueEnabled</string>
+			<key>label</key>
+			<string>Enable Alien Blue</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>On apps that have the eye button rather than in the menu, enable or disable that button from appearing on only deleted comments/posts.</string>
 			<key>label</key>
-			<string>Apollo </string>
+			<string>visibility</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -72,7 +88,21 @@
 			<key>key</key>
 			<string>isApolloDeletedCommentsOnly</string>
 			<key>label</key>
-			<string>Only display eye on deleted comments</string>
+			<string>Apollo | Only on deleted comments</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isAlienBlueDeletedOnly</string>
+			<key>label</key>
+			<string>Alien Blue | Only on deleted comments/posts</string>
 		</dict>
 		<dict>
 			<key>cell</key>
