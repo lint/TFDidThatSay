@@ -69,10 +69,24 @@
 			<string>Enable Alien Blue</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isSlideEnabled</string>
+			<key>label</key>
+			<string>Enable Slide</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>On apps that have the eye button rather than in the menu, enable or disable that button from appearing on only deleted comments/posts.</string>
+			<string>On apps that have an eye button rather than an option in the menu, enable or disable that button from appearing on only deleted comments/posts.</string>
 			<key>label</key>
 			<string>visibility</string>
 		</dict>
@@ -88,7 +102,7 @@
 			<key>key</key>
 			<string>isApolloDeletedCommentsOnly</string>
 			<key>label</key>
-			<string>Apollo | Only on deleted comments</string>
+			<string>Apollo | Deleted only</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -102,7 +116,21 @@
 			<key>key</key>
 			<string>isAlienBlueDeletedOnly</string>
 			<key>label</key>
-			<string>Alien Blue | Only on deleted comments/posts</string>
+			<string>Alien Blue | Deleted only</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isSlideDeletedOnly</string>
+			<key>label</key>
+			<string>Slide | Deleted only</string>
 		</dict>
 		<dict>
 			<key>cell</key>

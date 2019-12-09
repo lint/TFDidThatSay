@@ -18,3 +18,4 @@ after-install::
 	install.exec "killall -9 Apollo"
 	install.exec "killall -9 narwhal"
 	install.exec "killall -9 AlienBlue"
+	install.exec "killall -9 Slide\ for\ Reddit"
