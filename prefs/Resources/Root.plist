@@ -83,6 +83,20 @@
 			<string>Enable Slide</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isBaconReaderEnabled</string>
+			<key>label</key>
+			<string>Enable BaconReader</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
@@ -131,6 +145,20 @@
 			<string>isSlideDeletedOnly</string>
 			<key>label</key>
 			<string>Slide | Deleted only</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isBaconReaderDeletedOnly</string>
+			<key>label</key>
+			<string>BaconReader | Deleted only</string>
 		</dict>
 		<dict>
 			<key>cell</key>
