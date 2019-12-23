@@ -1,6 +1,6 @@
 include $(THEOS)/makefiles/common.mk
 
-ARCHS = arm64 arm64e
+ARCHS = armv7 armv7s arm64 arm64e
 
 BUNDLE_NAME = TFDidThatSayPrefs
 
