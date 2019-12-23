@@ -2,6 +2,7 @@
 #import "Narwhal.h"
 
 static BOOL isNarwhalEnabled;
+static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
 %group Narwhal
@@ -45,7 +46,6 @@ void getUndeleteCommentData(id controller, id comment){
 }
 
 
-
 %hook UIViewController
 
 -(void) presentViewController:(id) arg1 animated:(BOOL) arg2 completion:(id) arg3{
@@ -55,9 +55,9 @@ void getUndeleteCommentData(id controller, id comment){
 		UIAlertAction* undeleteAction;
 		
 		if (tfComment){
-			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){getUndeleteCommentData(tfController, tfComment);}];
+			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){getUndeleteCommentData(tfController, tfComment);}];
 		} else {
-			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:nil handler:^(UIAlertAction* action){[tfController handleUndeletePostAction];}];
+			undeleteAction = [UIAlertAction actionWithTitle:@"tf did that say?" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){[tfController handleUndeletePostAction];}];
 		}
 		
 		[arg1 addAction:undeleteAction];
@@ -68,8 +68,6 @@ void getUndeleteCommentData(id controller, id comment){
 }
 
 %end
-
-
 
 
 %hook NRTLinkViewController
@@ -141,12 +139,15 @@ void getUndeleteCommentData(id controller, id comment){
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
 
 	if (arg2 == 2){
-		
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
-		
-			tfComment = [arg1 comment];
-			tfController = self;
-			shouldHaveUndeleteAction = YES;
+			
+			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
+			
+			if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+				tfComment = [arg1 comment];
+				tfController = self;
+				shouldHaveUndeleteAction = YES;
+			}
 		} 
 	} 
 	
@@ -155,14 +156,17 @@ void getUndeleteCommentData(id controller, id comment){
 	shouldHaveUndeleteAction = NO;
 }
 
-
 -(void) _dotsButtonTouched:(id) arg1{
 	
 	if ([self linkTextOffscreenCell]){
 		
-		tfController = self;
-		tfComment = nil;
-		shouldHaveUndeleteAction = YES;
+		NSString *postBody = [[self link] selfText];
+		
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+			tfController = self;
+			tfComment = nil;
+			shouldHaveUndeleteAction = YES;
+		}
 	}
 	
 	%orig;
@@ -192,13 +196,15 @@ void getUndeleteCommentData(id controller, id comment){
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
 
 	if (arg2 == 2){
-		
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
 			
-			tfComment = [arg1 comment];
-			tfController = self;
-			shouldHaveUndeleteAction = YES;
-		
+			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
+			
+			if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+				tfComment = [arg1 comment];
+				tfController = self;
+				shouldHaveUndeleteAction = YES;
+			}
 		} 
 	} 
 	
@@ -223,6 +229,12 @@ static void loadPrefs(){
 			isNarwhalEnabled = YES;
 		}
 		
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil) {
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
+		} else {
+			isTFDeletedOnly = YES;
+		}
+		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
 			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
 		} else {
@@ -231,6 +243,7 @@ static void loadPrefs(){
 		
 	} else {
 		isNarwhalEnabled = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
 	}	
 }
@@ -254,4 +267,3 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 		}
 	}
 }
-

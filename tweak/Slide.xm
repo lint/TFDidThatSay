@@ -3,7 +3,7 @@
 #import "assets/MMMarkdown.h"
 
 static BOOL isSlideEnabled;
-static BOOL isSlideDeletedOnly;
+static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
 %group Slide
@@ -266,7 +266,7 @@ static UIButton * createUndeleteButton(){
 	
 	NSString *body = [MSHookIvar<id>(self, "comment") body];
 	
-	if ((isSlideDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isSlideDeletedOnly){
+	if ((isTFDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
 	
 		id controller = MSHookIvar<id>(self, "parent");
 		
@@ -339,9 +339,9 @@ static UIButton * createUndeleteButton(){
 		NSMutableAttributedString *htmlAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:[dthtmlBuilder generatedAttributedString]];
 		NSRange htmlStringRange = NSMakeRange(0, [htmlAttributedString length]);
 		
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t•\t" withString:@" • " options:nil range: htmlStringRange];
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t◦\t" withString:@"  ◦ " options:nil range: htmlStringRange];
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t▪\t" withString:@"   ▪ " options:nil range: htmlStringRange];
+		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t•\t" withString:@" • " options:0 range: htmlStringRange];
+		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t◦\t" withString:@"  ◦ " options:0 range: htmlStringRange];
+		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t▪\t" withString:@"   ▪ " options:0	 range: htmlStringRange];
 		
 		[htmlAttributedString removeAttribute:@"CTForegroundColorFromContext" range:htmlStringRange];
 		
@@ -376,7 +376,7 @@ static UIButton * createUndeleteButton(){
 		}];
 		
 		[htmlAttributedString beginEditing];
-		[htmlAttributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, [htmlAttributedString length]) options:nil usingBlock:^(id value, NSRange range, BOOL *stop){
+		[htmlAttributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, [htmlAttributedString length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop){
 			
 			UIFont *attrFont = (UIFont *)value;
 			
@@ -429,10 +429,10 @@ static void loadPrefs(){
 			isSlideEnabled = YES;
 		}
 		
-		if ([prefs objectForKey:@"isSlideDeletedOnly"] != nil){
-			isSlideDeletedOnly = [[prefs objectForKey:@"isSlideDeletedOnly"] boolValue];
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil){
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
 		} else {
-			isSlideDeletedOnly = YES;
+			isTFDeletedOnly = YES;
 		}
 		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
@@ -443,7 +443,7 @@ static void loadPrefs(){
 		
 	} else {
 		isSlideEnabled = YES;
-		isSlideDeletedOnly = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
 	}	
 }

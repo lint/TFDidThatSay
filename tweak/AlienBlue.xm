@@ -3,7 +3,7 @@
 #import "assets/MMMarkdown.h"
 
 static BOOL isAlienBlueEnabled;
-static BOOL isAlienBlueDeletedOnly;
+static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
 %group AlienBlue
@@ -21,7 +21,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 		body = [[(CommentNode *)arg1 comment] body];
 	} 
 	
-	if ((isAlienBlueDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isAlienBlueDeletedOnly) {
+	if ((isTFDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
 	
 		CGSize refSize = [[self buttons][0] frame].size;
 
@@ -158,10 +158,10 @@ static void loadPrefs(){
 			isAlienBlueEnabled = YES;
 		}
 		
-		if ([prefs objectForKey:@"isAlienBlueDeletedOnly"] != nil){
-			isAlienBlueDeletedOnly = [[prefs objectForKey:@"isAlienBlueDeletedOnly"] boolValue];
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil){
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
 		} else {
-			isAlienBlueDeletedOnly = YES;
+			isTFDeletedOnly = YES;
 		}
 		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
@@ -172,7 +172,7 @@ static void loadPrefs(){
 		
 	} else {
 		isAlienBlueEnabled = YES;
-		isAlienBlueDeletedOnly = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
 	}	
 }

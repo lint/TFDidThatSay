@@ -1,8 +1,9 @@
 
 #import "Reddit.h"
 
-static CGFloat pushshiftRequestTimeoutValue;
 static BOOL isRedditEnabled;
+static BOOL isTFDeletedOnly;
+static CGFloat pushshiftRequestTimeoutValue;
 
 static NSArray *redditVersion;
 
@@ -46,20 +47,26 @@ static NSArray *redditVersion;
 %hook CommentActionSheetViewController
 
 -(void) setItems:(id) arg1{
-
-	UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-
-	CGSize existingImageSize = [[arg1[0] leftIconImage] size];
-	CGFloat scale = origImage.size.width / existingImageSize.width;
-
-	UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
-
-	id undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
-
-	%orig([arg1 arrayByAddingObject:undeleteItem]);
 	
-	[undeleteItem release];
+	NSString *commentBody = [[self comment] bodyText];
+	
+	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
 
+		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+
+		CGSize existingImageSize = [[arg1[0] leftIconImage] size];
+		CGFloat scale = origImage.size.width / existingImageSize.width;
+
+		UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
+
+		id undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
+
+		arg1 = [arg1 arrayByAddingObject:undeleteItem];
+		
+		[undeleteItem release];
+	}
+	
+	%orig;
 }
 
 -(void) handleDidSelectActionSheetItem:(id) arg1{
@@ -185,21 +192,24 @@ static NSArray *redditVersion;
 -(void) setItems:(id) arg1{
 	
 	Post *post = [self post];
+	NSString *postBody = [post selfText];
 	
 	if ([post isSelfPost]){
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
 
-		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 
-		CGSize existingImageSize = [[arg1[0] leftIconImage] size];
-		CGFloat scale = origImage.size.width / existingImageSize.width;
+			CGSize existingImageSize = [[arg1[0] leftIconImage] size];
+			CGFloat scale = origImage.size.width / existingImageSize.width;
 
-		UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
+			UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
 
-		id undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
+			id undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
 
-		arg1 = [arg1 arrayByAddingObject:undeleteItem];
-		
-		[undeleteItem release];
+			arg1 = [arg1 arrayByAddingObject:undeleteItem];
+			
+			[undeleteItem release];
+		}
 	}
 	
 	%orig;
@@ -342,25 +352,32 @@ static NSArray *redditVersion;
 %hook CommentActionSheetViewController
 
 -(void) setItems:(id) arg1{
-
-	UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-
-	CGSize existingImageSize = [[arg1[0] leftIconImage] size];
-	CGFloat scale = origImage.size.width / existingImageSize.width;
-
-	UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
 	
-	id undeleteItem;
+	NSString *commentBody = [[self comment] bodyText];
 	
-	if ([redditVersion[1] integerValue] >= 18) {
-		undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
-	} else {
-		undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
+	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+
+		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+
+		CGSize existingImageSize = [[arg1[0] leftIconImage] size];
+		CGFloat scale = origImage.size.width / existingImageSize.width;
+
+		UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
+		
+		id undeleteItem;
+		
+		if ([redditVersion[1] integerValue] >= 18) {
+			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
+		} else {
+			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
+		}
+
+		arg1 = [arg1 arrayByAddingObject:undeleteItem];
+		
+		[undeleteItem release];
 	}
-
-	%orig([arg1 arrayByAddingObject:undeleteItem]);
 	
-	[undeleteItem release];
+	%orig;
 }
 
 // >= 4.21
@@ -479,27 +496,30 @@ static NSArray *redditVersion;
 -(void) setItems:(id) arg1{
 	
 	Post *post = [self post];
+	NSString *postBody = [post selfText];
 	
 	if ([post isSelfPost]){
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
 
-		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 
-		CGSize existingImageSize = [[arg1[0] leftIconImage] size];
-		CGFloat scale = origImage.size.width / existingImageSize.width;
+			CGSize existingImageSize = [[arg1[0] leftIconImage] size];
+			CGFloat scale = origImage.size.width / existingImageSize.width;
 
-		UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
-		
-		id undeleteItem;
-		
-		if ([redditVersion[1] integerValue] >= 18) {
-			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
-		} else {
-			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
+			UIImage *newImage = [UIImage imageWithCGImage:[origImage CGImage] scale:scale orientation:origImage.imageOrientation];
+			
+			id undeleteItem;
+			
+			if ([redditVersion[1] integerValue] >= 18) {
+				undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
+			} else {
+				undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
+			}
+
+			arg1 = [arg1 arrayByAddingObject:undeleteItem];
+			
+			[undeleteItem release];
 		}
-
-		arg1 = [arg1 arrayByAddingObject:undeleteItem];
-		
-		[undeleteItem release];
 	}
 	
 	%orig;
@@ -722,6 +742,12 @@ static void loadPrefs(){
 			isRedditEnabled = YES;
 		}
 		
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil) {
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
+		} else {
+			isTFDeletedOnly = YES;
+		}
+		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
 			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
 		} else {
@@ -730,6 +756,7 @@ static void loadPrefs(){
 		
 	} else {
 		isRedditEnabled = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
 	}
 }

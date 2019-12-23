@@ -1,7 +1,7 @@
 
 #import "Apollo.h"
 
-static BOOL isApolloDeletedCommentsOnly;
+static BOOL isTFDeletedOnly;
 static BOOL isApolloEnabled;
 static CGFloat pushshiftRequestTimeoutValue;
 
@@ -96,7 +96,7 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-	if ((isApolloDeletedCommentsOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isApolloDeletedCommentsOnly) {
+	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
 	
 		CGFloat imageSize = 20.0f;
 
@@ -190,27 +190,30 @@ NSDictionary* apolloBodyAttributes = nil;
 		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
 		
 		[sender setEnabled:YES];
-		
 	}];
-	
 }
 
 -(void) didLoad{
 	%orig;
+	
+	id post = MSHookIvar<id>(self, "link");
+	id postBody = [post selfText];
 
-	if ([MSHookIvar<id>(self, "link") isSelfPost]){
-		
-		CGFloat imageSize = 20.0f;
+	if ([post isSelfPost]){
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
 
-		UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-		[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
-		
-		UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-		[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
-		undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
+			CGFloat imageSize = 20.0f;
 
-		[[self view] addSubview:undeleteButton];
-		[self setUndeleteButton:undeleteButton];
+			UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+			[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
+			
+			UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
+			undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
+
+			[[self view] addSubview:undeleteButton];
+			[self setUndeleteButton:undeleteButton];
+		}
 	}
 }
 
@@ -230,6 +233,7 @@ NSDictionary* apolloBodyAttributes = nil;
 		[[self undeleteButton] setFrame:CGRectMake(buttonXPos, centerHeight - (imageSize / 2), imageSize, imageSize)];
 	}
 }
+
 %end
 
 %end
@@ -246,22 +250,22 @@ static void loadPrefs(){
 			isApolloEnabled = YES;
 		}
 		
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil) {
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
+		} else {
+			isTFDeletedOnly = YES;
+		}
+		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
 			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
 		} else {
 			pushshiftRequestTimeoutValue = 10;
 		}
-		
-		if ([prefs objectForKey:@"isApolloDeletedCommentsOnly"] != nil) {
-			isApolloDeletedCommentsOnly = [[prefs objectForKey:@"isApolloDeletedCommentsOnly"] boolValue];
-		} else {
-			isApolloDeletedCommentsOnly = YES;
-		}
-	
+
 	} else {
 		isApolloEnabled = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
-		isApolloDeletedCommentsOnly = YES;
 	}	
 }
 

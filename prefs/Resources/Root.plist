@@ -100,7 +100,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>On apps that have an eye button rather than an option in the menu, enable or disable that button from appearing on only deleted comments/posts.</string>
+			<string>Enable or disable undelete option appearing only on deleted/removed comments and posts.</string>
 			<key>label</key>
 			<string>visibility</string>
 		</dict>
@@ -114,51 +114,9 @@
 			<key>defaults</key>
 			<string>com.lint.undelete.prefs</string>
 			<key>key</key>
-			<string>isApolloDeletedCommentsOnly</string>
+			<string>isTFDeletedOnly</string>
 			<key>label</key>
-			<string>Apollo | Deleted only</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isAlienBlueDeletedOnly</string>
-			<key>label</key>
-			<string>Alien Blue | Deleted only</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isSlideDeletedOnly</string>
-			<key>label</key>
-			<string>Slide | Deleted only</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isBaconReaderDeletedOnly</string>
-			<key>label</key>
-			<string>BaconReader | Deleted only</string>
+			<string>Deleted comments/posts only</string>
 		</dict>
 		<dict>
 			<key>cell</key>

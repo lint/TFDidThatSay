@@ -3,7 +3,7 @@
 #import "assets/MMMarkdown.h"
 
 static BOOL isBaconReaderEnabled;
-static BOOL isBaconReaderDeletedOnly;
+static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
 %group BaconReader
@@ -73,9 +73,9 @@ id tfStoryController;
 		UIAlertAction *undeleteAction;
 		
 		if (tfCommentCellView){
-			undeleteAction = [UIAlertAction actionWithTitle:@"TF Did That Say?" style:nil handler:^(UIAlertAction* action){[tfStoryController handleUndeleteCommentAction];}];
+			undeleteAction = [UIAlertAction actionWithTitle:@"TF Did That Say?" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){[tfStoryController handleUndeleteCommentAction];}];
 		} else {
-			undeleteAction = [UIAlertAction actionWithTitle:@"TF Did That Say?" style:nil handler:^(UIAlertAction* action){[tfStoryController handleUndeletePostAction];}];
+			undeleteAction = [UIAlertAction actionWithTitle:@"TF Did That Say?" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action){[tfStoryController handleUndeletePostAction];}];
 		}
 		 
 		[arg1 addAction:undeleteAction];
@@ -93,7 +93,7 @@ id tfStoryController;
 	
 	NSString *commentBody = [[arg1 comment] body];
 	
-	if ((isBaconReaderDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isBaconReaderDeletedOnly) {
+	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
 		shouldHaveBRUndeleteAction = YES;
 		tfCommentCellView = arg1;
 		tfStoryController = self;
@@ -110,7 +110,7 @@ id tfStoryController;
 	if ([[self story] is_selfValue]){
 		NSString *postBody = [[self story] selftext];
 		
-		if ((isBaconReaderDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isBaconReaderDeletedOnly) {
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
 			shouldHaveBRUndeleteAction = YES;
 			tfCommentCellView = nil;
 			tfStoryController = self;
@@ -223,21 +223,21 @@ static void loadPrefs(){
 			isBaconReaderEnabled = YES;
 		}
 		
+		if ([prefs objectForKey:@"isTFDeletedOnly"] != nil) {
+			isTFDeletedOnly = [[prefs objectForKey:@"isTFDeletedOnly"] boolValue];
+		} else {
+			isTFDeletedOnly = YES;
+		}
+		
 		if ([prefs objectForKey:@"requestTimeoutValue"] != nil){
 			pushshiftRequestTimeoutValue = [[prefs objectForKey:@"requestTimeoutValue"] doubleValue];
 		} else {
 			pushshiftRequestTimeoutValue = 10;
 		}
 		
-		if ([prefs objectForKey:@"isBaconReaderDeletedOnly"] != nil) {
-			isBaconReaderDeletedOnly = [[prefs objectForKey:@"isBaconReaderDeletedOnly"] boolValue];
-		} else {
-			isBaconReaderDeletedOnly = YES;
-		}
-		
 	} else {
 		isBaconReaderEnabled = YES;
-		isBaconReaderDeletedOnly = YES;
+		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
 	}	
 }
