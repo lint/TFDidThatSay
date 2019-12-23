@@ -97,6 +97,20 @@
 			<string>Enable BaconReader</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isAntennaEnabled</string>
+			<key>label</key>
+			<string>Enable Antenna</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
@@ -145,6 +159,14 @@
 			<string>5</string>
 			<key>showValue</key>
 			<true/>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Enable or disable undelete option appearing only on deleted/removed comments and posts.</string>
+			<key>label</key>
+			<string>visibility</string>
 		</dict>
 	</array>
 	<key>title</key>
