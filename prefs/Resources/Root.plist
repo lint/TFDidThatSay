@@ -111,6 +111,20 @@
 			<string>Enable Antenna</string>
 		</dict>
 		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isBeamEnabled</string>
+			<key>label</key>
+			<string>Enable Beam</string>
+		</dict>
+		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
