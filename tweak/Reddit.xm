@@ -112,7 +112,7 @@ static NSArray *redditVersion;
 			id isNightMode;
 			id textColor;
 			
-			if ([redditVersion[1] integerValue] >= 45){
+			if ([redditVersion[1] intValue] >= 45){
 				themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -124,7 +124,7 @@ static NSArray *redditVersion;
 				
 				[themeManager release];
 				
-			} else if ([redditVersion[1] integerValue] >= 37){
+			} else if ([redditVersion[1] intValue] >= 37){
 				themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -258,7 +258,7 @@ static NSArray *redditVersion;
 				id isNightMode;
 				id textColor;
 				
-				if ([redditVersion[1] integerValue] >= 45){
+				if ([redditVersion[1] intValue] >= 45){
 					themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -270,7 +270,7 @@ static NSArray *redditVersion;
 					
 					[themeManager release];
 					
-				} else if ([redditVersion[1] integerValue] >= 37){
+				} else if ([redditVersion[1] intValue] >= 37){
 					themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -307,9 +307,9 @@ static NSArray *redditVersion;
 				[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				
-				if ([redditVersion[1] integerValue] >= 44){
+				if ([redditVersion[1] intValue] >= 44){
 					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-				} else if ([redditVersion[1] integerValue] >= 38) {
+				} else if ([redditVersion[1] intValue] >= 38) {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 				} else {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
@@ -340,7 +340,7 @@ static NSArray *redditVersion;
 %new 
 -(void) updatePostText{
 	
-	if ([redditVersion[1] integerValue] >= 2){
+	if ([redditVersion[1] intValue] >= 2){
 		[self reloadPostSection:YES];
 	} else {
 		[self feedPostViewDidUpdatePost:[self postData] shouldReloadFeed:NO];
@@ -366,7 +366,7 @@ static NSArray *redditVersion;
 		
 		id undeleteItem;
 		
-		if ([redditVersion[1] integerValue] >= 18) {
+		if ([redditVersion[1] intValue] >= 18) {
 			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
 		} else {
 			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
@@ -476,7 +476,7 @@ static NSArray *redditVersion;
 			[comment setBodyText:body];
 			[comment setBodyAttributedText:bodyMutableAttributedText];
 			
-			if ([redditVersion[1] integerValue] >= 12) {
+			if ([redditVersion[1] intValue] >= 12) {
 				[comment setBodyRichTextAttributed:bodyMutableAttributedText];
 			}
 			
@@ -510,7 +510,7 @@ static NSArray *redditVersion;
 			
 			id undeleteItem;
 			
-			if ([redditVersion[1] integerValue] >= 18) {
+			if ([redditVersion[1] intValue] >= 18) {
 				undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
 			} else {
 				undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
@@ -626,11 +626,11 @@ static NSArray *redditVersion;
 				[post setSelfText:body];
 				[post setSelfTextAttributed:bodyMutableAttributedText];
 				
-				if ([redditVersion[1] integerValue] >= 8) {
+				if ([redditVersion[1] intValue] >= 8) {
 					[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				}
 				
-				if ([redditVersion[1] integerValue] >= 15) {
+				if ([redditVersion[1] intValue] >= 15) {
 					[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				} 
 				
@@ -772,18 +772,25 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
 	
+	for (int i = 0; i < [redditVersion count]; i++){
+		if ([redditVersion[i] isEqual:[NSNull null]]){
+			redditVersion = @[@4, @48, @1, @(-1)];
+			break;
+		}	
+	}
+
 	if ([processName isEqualToString:@"Reddit"]){
 		if (isRedditEnabled) {
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			if ([redditVersion[0] isEqualToString:@"4"]){
-				if ([redditVersion[1] integerValue] <= 32){
+			if ([redditVersion[0] intValue] == 4){
+				if ([redditVersion[1] intValue] <= 32){
 					%init(Reddit_v4_ios10);
 				} else{
 					%init(Reddit_v4_current);
 				}	
-			} else if ([redditVersion[0] isEqualToString:@"3"]) {
+			} else if ([redditVersion[0] intValue] == 3) {
 				%init(Reddit_v3);
 			}
 		}
