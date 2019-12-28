@@ -7,6 +7,21 @@ static CGFloat pushshiftRequestTimeoutValue;
 
 static NSArray *redditVersion;
 
+int getRedditVersionPart(int index){
+	
+	if (![redditVersion[index] isEqual:[NSNull null]]){
+		return [redditVersion[index] intValue];
+	} else {
+		NSArray *newVersionArray = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+		
+		if (![newVersionArray[index] isEqual:[NSNull null]]){
+			return [newVersionArray[index] intValue];
+		} else {
+			return [@[@4, @48, @1][index] intValue];
+		}
+	}
+}
+
 %group Reddit_v4_current
 
 %hook CommentTreeNode
@@ -112,7 +127,7 @@ static NSArray *redditVersion;
 			id isNightMode;
 			id textColor;
 			
-			if ([redditVersion[1] intValue] >= 45){
+			if (getRedditVersionPart(1) >= 45){
 				themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -124,7 +139,7 @@ static NSArray *redditVersion;
 				
 				[themeManager release];
 				
-			} else if ([redditVersion[1] intValue] >= 37){
+			} else if (getRedditVersionPart(1) >= 37){
 				themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 				
@@ -258,7 +273,7 @@ static NSArray *redditVersion;
 				id isNightMode;
 				id textColor;
 				
-				if ([redditVersion[1] intValue] >= 45){
+				if (getRedditVersionPart(1) >= 45){
 					themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -270,7 +285,7 @@ static NSArray *redditVersion;
 					
 					[themeManager release];
 					
-				} else if ([redditVersion[1] intValue] >= 37){
+				} else if (getRedditVersionPart(1) >= 37){
 					themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 					
@@ -307,9 +322,9 @@ static NSArray *redditVersion;
 				[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				
-				if ([redditVersion[1] intValue] >= 44){
+				if (getRedditVersionPart(1) >= 44){
 					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-				} else if ([redditVersion[1] intValue] >= 38) {
+				} else if (getRedditVersionPart(1) >= 38) {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 				} else {
 					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
@@ -340,7 +355,7 @@ static NSArray *redditVersion;
 %new 
 -(void) updatePostText{
 	
-	if ([redditVersion[1] intValue] >= 2){
+	if (getRedditVersionPart(1) >= 2){
 		[self reloadPostSection:YES];
 	} else {
 		[self feedPostViewDidUpdatePost:[self postData] shouldReloadFeed:NO];
@@ -366,7 +381,7 @@ static NSArray *redditVersion;
 		
 		id undeleteItem;
 		
-		if ([redditVersion[1] intValue] >= 18) {
+		if (getRedditVersionPart(1) >= 18) {
 			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
 		} else {
 			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
@@ -476,7 +491,7 @@ static NSArray *redditVersion;
 			[comment setBodyText:body];
 			[comment setBodyAttributedText:bodyMutableAttributedText];
 			
-			if ([redditVersion[1] intValue] >= 12) {
+			if (getRedditVersionPart(1) >= 12) {
 				[comment setBodyRichTextAttributed:bodyMutableAttributedText];
 			}
 			
@@ -510,7 +525,7 @@ static NSArray *redditVersion;
 			
 			id undeleteItem;
 			
-			if ([redditVersion[1] intValue] >= 18) {
+			if (getRedditVersionPart(1) >= 18) {
 				undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
 			} else {
 				undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
@@ -626,11 +641,11 @@ static NSArray *redditVersion;
 				[post setSelfText:body];
 				[post setSelfTextAttributed:bodyMutableAttributedText];
 				
-				if ([redditVersion[1] intValue] >= 8) {
+				if (getRedditVersionPart(1) >= 8) {
 					[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 				}
 				
-				if ([redditVersion[1] intValue] >= 15) {
+				if (getRedditVersionPart(1) >= 15) {
 					[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 				} 
 				
@@ -771,26 +786,19 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
-	
-	for (int i = 0; i < [redditVersion count]; i++){
-		if ([redditVersion[i] isEqual:[NSNull null]]){
-			redditVersion = @[@4, @48, @1, @(-1)];
-			break;
-		}	
-	}
 
 	if ([processName isEqualToString:@"Reddit"]){
 		if (isRedditEnabled) {
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			if ([redditVersion[0] intValue] == 4){
-				if ([redditVersion[1] intValue] <= 32){
+			if (getRedditVersionPart(0) == 4){
+				if (getRedditVersionPart(1) <= 32){
 					%init(Reddit_v4_ios10);
 				} else{
 					%init(Reddit_v4_current);
 				}	
-			} else if ([redditVersion[0] intValue] == 3) {
+			} else if (getRedditVersionPart(0) == 3) {
 				%init(Reddit_v3);
 			}
 		}
