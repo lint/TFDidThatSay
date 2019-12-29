@@ -1,5 +1,6 @@
 
 #import "Narwhal.h"
+#import "assets/TFHelper.h"
 
 static BOOL isNarwhalEnabled;
 static BOOL isTFDeletedOnly;
@@ -11,38 +12,8 @@ BOOL shouldHaveUndeleteAction = NO;
 id tfComment;
 id tfController;
 
-void getUndeleteCommentData(id controller, id comment){
-	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-	
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		[controller performSelectorOnMainThread:@selector(completeUndeleteComment:) withObject:@{@"body":body, @"author":author, @"comment":comment} waitUntilDone:NO];
-	}];
-	
+void getUndeleteCommentData(id controller, id comment){	
+	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:@{@"comment" : comment} completionTarget:controller completionSelector:@selector(completeUndeleteCommentAction:)];
 }
 
 
@@ -61,7 +32,6 @@ void getUndeleteCommentData(id controller, id comment){
 		}
 		
 		[arg1 addAction:undeleteAction];
-		
 	}
 	
 	%orig;
@@ -71,70 +41,6 @@ void getUndeleteCommentData(id controller, id comment){
 
 
 %hook NRTLinkViewController
-
-%new
--(void) completeUndeleteComment:(id) data{
-
-	id comment = data[@"comment"];
-
-	if (comment){
-
-		MSHookIvar<NSString*>(comment, "_author") = data[@"author"];
-		MSHookIvar<NSString*>(comment, "_body") = data[@"body"];
-		
-		[[self commentsManager] updateComment:comment fromEdited:comment];
-	}
-}
-
-%new 
--(void) completeUndeletePost:(id) data{
-
-	id post = data[@"post"];
-
-	MSHookIvar<NSString*>(post, "_author") = data[@"author"];
-	
-	NSAttributedString* postBodyAttributedString = [%c(NRTMarkdownManager) attributedStringFromMarkdown:data[@"body"] type:0];
-	[self setLinkText:postBodyAttributedString];
-		
-	[[self tableView] reloadData];
-}
-
-%new
--(void) handleUndeletePostAction{
-	
-	id post = [self link];
-	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-		
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		[self performSelectorOnMainThread:@selector(completeUndeletePost:) withObject:@{@"body":body, @"author":author, @"post":post} waitUntilDone:NO];
-		
-	}];
-}
 
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
 
@@ -174,13 +80,29 @@ void getUndeleteCommentData(id controller, id comment){
 	shouldHaveUndeleteAction = NO;
 }
 
-%end
+%new
+-(void) handleUndeletePostAction{
+	
+	id post = [self link];
+	
+	[%c(TFHelper) getUndeleteDataWithID:[[post fullName] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:@{@"post" : post} completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
+}
 
+%new 
+-(void) completeUndeletePostAction:(NSDictionary *) data{
 
-%hook NRTMediaTableViewDataSource
+	id post = data[@"post"];
+
+	MSHookIvar<NSString*>(post, "_author") = data[@"author"];
+	
+	NSAttributedString* postBodyAttributedString = [%c(NRTMarkdownManager) attributedStringFromMarkdown:data[@"body"] type:0];
+	[self setLinkText:postBodyAttributedString];
+	
+	[[self tableView] reloadData];
+}
 
 %new
--(void) completeUndeleteComment:(id) data{
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
 
 	id comment = data[@"comment"];
 
@@ -192,6 +114,11 @@ void getUndeleteCommentData(id controller, id comment){
 		[[self commentsManager] updateComment:comment fromEdited:comment];
 	}
 }
+
+%end
+
+
+%hook NRTMediaTableViewDataSource
 
 -(void) swipeCell:(id) arg1 didEndDragWithState:(NSUInteger) arg2{
 
@@ -211,6 +138,20 @@ void getUndeleteCommentData(id controller, id comment){
 	%orig;
 	
 	shouldHaveUndeleteAction = NO;
+}
+
+%new
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
+
+	id comment = data[@"comment"];
+
+	if (comment){
+
+		MSHookIvar<NSString*>(comment, "_author") = data[@"author"];
+		MSHookIvar<NSString*>(comment, "_body") = data[@"body"];
+		
+		[[self commentsManager] updateComment:comment fromEdited:comment];
+	}
 }
 
 %end

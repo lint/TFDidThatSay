@@ -1,6 +1,7 @@
 
 #import "BaconReader.h"
-#import "assets/MMMarkdown.h"
+#import "assets/TFHelper.h"
+#import "assets/MMMarkdown/MMMarkdown.h"
 
 static BOOL isBaconReaderEnabled;
 static BOOL isTFDeletedOnly;
@@ -126,85 +127,40 @@ id tfStoryController;
 %new
 -(void) handleUndeleteCommentAction{
 	
+	[%c(TFHelper) getUndeleteDataWithID:[[tfCommentCellView comment] serverID] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
+}
+
+%new
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
+	
 	id comment = [tfCommentCellView comment];
 	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body", [comment serverID]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+	NSString *body = data[@"body"];
 	
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		[comment setAuthor:author];
-		[comment setBody:body];
-		[comment setBody_html:[%c(MMMarkdown) HTMLStringWithMarkdown:body extensions:MMMarkdownExtensionsGitHubFlavored error:nil]];
-		[comment setAttributedDescriptionString:nil];
-		
-		NSAttributedString *commentAttrString = [%c(BRUtils) attributedDescriptionForComment:comment];
-		[comment setAttributedDescriptionString:commentAttrString];
-		
-		[[[self detailPage] tableView] performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
-	}];
+	[comment setAuthor:data[@"author"]];
+	[comment setBody:body];
+	[comment setBody_html:[%c(MMMarkdown) HTMLStringWithMarkdown:body extensions:MMMarkdownExtensionsGitHubFlavored error:nil]];
+	[comment setAttributedDescriptionString:nil];
+	
+	NSAttributedString *commentAttrString = [%c(BRUtils) attributedDescriptionForComment:comment];
+	[comment setAttributedDescriptionString:commentAttrString];
+	
+	[[[self detailPage] tableView] reloadData];
 }
 
 %new
 -(void) handleUndeletePostAction{
 	
-	id post = [self story];
+	[%c(TFHelper) getUndeleteDataWithID:[[self story] serverID] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
+}
+
+%new
+-(void) completeUndeletePostAction:(NSDictionary *) data{
 	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext", [post serverID]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-		
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		tfPostAuthor = author;
-		tfPostSelftext = [%c(MMMarkdown) HTMLStringWithMarkdown:body extensions:MMMarkdownExtensionsGitHubFlavored error:nil];
+	tfPostAuthor = data[@"author"];
+	tfPostSelftext = [%c(MMMarkdown) HTMLStringWithMarkdown:data[@"body"] extensions:MMMarkdownExtensionsGitHubFlavored error:nil];
 	
-		[[self detailPage] performSelectorOnMainThread:@selector(refreshTouched) withObject:nil waitUntilDone:NO];
-		
-	}];
+	[[self detailPage] refreshTouched];
 }
 
 %end

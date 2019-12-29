@@ -1,5 +1,6 @@
 
 #import "Reddit.h"
+#import "assets/TFHelper.h"
 
 static BOOL isRedditEnabled;
 static BOOL isTFDeletedOnly;
@@ -93,98 +94,80 @@ int getRedditVersionPart(int index){
 		
 		id commentTreeNode = [self commentTreeNode];
 		Comment *comment = [commentTreeNode comment];
-
-		NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
-			NSString *author = @"[author]";
-			NSString *body = @"[body]";
-
-			if (data != nil && error == nil){
-				id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-				if ([[jsonData objectForKey:@"data"] count] != 0){
-					author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-					body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-					if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-						body = @"[pushshift was unable to archive this]";
-					}
-				} else {
-					body = @"[pushshift has not archived this yet]";
-				}
-			} else if (error != nil || data == nil){
-				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-			}
-			
-			NSMutableAttributedString *bodyMutableAttributedText;
-			
-			id themeManager;
-			id isNightMode;
-			id textColor;
-			
-			if (getRedditVersionPart(1) >= 45){
-				themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
-				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-				
-				if (isNightMode) {
-					textColor = [[themeManager darkTheme] bodyTextColor];
-				} else{
-					textColor = [[themeManager lightTheme] bodyTextColor];
-				}
-				
-				[themeManager release];
-				
-			} else if (getRedditVersionPart(1) >= 37){
-				themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-				
-				if (isNightMode) {
-					textColor = [[themeManager nightTheme] bodyTextColor];
-				} else{
-					textColor = [[themeManager dayTheme] bodyTextColor];
-				}
-				
-				[themeManager release];
-				
-			} else {
-				themeManager  = [%c(ThemeManager) sharedManager];
-				isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-				
-				if (isNightMode) {
-					textColor = [[themeManager nightTheme] bodyTextColor];
-				} else{
-					textColor = [[themeManager dayTheme] bodyTextColor];
-				}
-			}
-			
-			bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-
-			[bodyMutableAttributedText beginEditing];
-			[bodyMutableAttributedText enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0, bodyMutableAttributedText.length) options:0 usingBlock:^(id  _Nullable value, NSRange range, BOOL * _Nonnull stop) {
-				[bodyMutableAttributedText removeAttribute:NSForegroundColorAttributeName range:range]; 
-				[bodyMutableAttributedText addAttribute:NSForegroundColorAttributeName value:textColor range:range];
-			}];
-			[bodyMutableAttributedText endEditing];
-			
-			[comment setAuthor:author];
-			[comment setBodyText:body];
-			[comment setBodyRichTextAttributed:bodyMutableAttributedText];
-			[comment setBodyAttributedText:bodyMutableAttributedText];
-			
-			[[commentTreeNode commentTreeHeaderNode] performSelectorOnMainThread:@selector(updateContentViewsForData:) withObject:comment waitUntilDone:NO];
-
-			[request release];
-			[queue release];
-			[bodyMutableAttributedText release];
-			
-		}];	
+		[%c(TFHelper) getUndeleteDataWithID:[[comment pk] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 	}
 }
+
+%new 
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
+	
+	id commentTreeNode = [self commentTreeNode];
+	Comment *comment = [commentTreeNode comment];
+	
+	NSString *author = data[@"author"];
+	NSString *body = data[@"body"];
+		
+	NSMutableAttributedString *bodyMutableAttributedText;
+			
+	id themeManager;
+	id isNightMode;
+	id textColor;
+	
+	if (getRedditVersionPart(1) >= 45){
+		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager darkTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager lightTheme] bodyTextColor];
+		}
+		
+		[themeManager release];
+		
+	} else if (getRedditVersionPart(1) >= 37){
+		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager nightTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager dayTheme] bodyTextColor];
+		}
+		
+		[themeManager release];
+		
+	} else {
+		themeManager  = [%c(ThemeManager) sharedManager];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager nightTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager dayTheme] bodyTextColor];
+		}
+	}
+	
+	bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+
+	[bodyMutableAttributedText beginEditing];
+	[bodyMutableAttributedText enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0, bodyMutableAttributedText.length) options:0 usingBlock:^(id  _Nullable value, NSRange range, BOOL * _Nonnull stop) {
+		[bodyMutableAttributedText removeAttribute:NSForegroundColorAttributeName range:range]; 
+		[bodyMutableAttributedText addAttribute:NSForegroundColorAttributeName value:textColor range:range];
+	}];
+	[bodyMutableAttributedText endEditing];
+	
+	[comment setAuthor:author];
+	[comment setBodyText:body];
+	[comment setBodyRichTextAttributed:bodyMutableAttributedText];
+	[comment setBodyAttributedText:bodyMutableAttributedText];
+	
+	[[commentTreeNode commentTreeHeaderNode] updateContentViewsForData:comment];
+
+	[bodyMutableAttributedText release];
+}
+
 %end
 
 
@@ -242,102 +225,83 @@ int getRedditVersionPart(int index){
 		
 		if ([post isSelfPost]){
 			
-			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];
-			[request setTimeoutInterval:pushshiftRequestTimeoutValue];			
-
-			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-				
-				NSString *author = @"[author]";
-				NSString *body = @"[body]";
-				
-				if (data != nil && error == nil){
-					id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-					if ([[jsonData objectForKey:@"data"] count] != 0){
-						author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-						body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-						if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-							body = @"[pushshift was unable to archive this]";
-						} 
-					} else {
-						body = @"[pushshift has not archived this yet]";
-					}
-				} else if (error != nil || data == nil){
-					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-				}				
-				
-				id themeManager;
-				id isNightMode;
-				id textColor;
-				
-				if (getRedditVersionPart(1) >= 45){
-					themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
-					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-					
-					if (isNightMode) {
-						textColor = [[themeManager darkTheme] bodyTextColor];
-					} else{
-						textColor = [[themeManager lightTheme] bodyTextColor];
-					}
-					
-					[themeManager release];
-					
-				} else if (getRedditVersionPart(1) >= 37){
-					themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-					
-					if (isNightMode) {
-						textColor = [[themeManager nightTheme] bodyTextColor];
-					} else{
-						textColor = [[themeManager dayTheme] bodyTextColor];
-					}
-					
-					[themeManager release];
-					
-				} else {
-					themeManager  = [%c(ThemeManager) sharedManager];
-					isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-					
-					if (isNightMode) {
-						textColor = [[themeManager nightTheme] bodyTextColor];
-					} else{
-						textColor = [[themeManager dayTheme] bodyTextColor];
-					}
-				}			
-
-				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-
-				[bodyMutableAttributedText beginEditing];
-				[bodyMutableAttributedText enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0, bodyMutableAttributedText.length) options:0 usingBlock:^(id  _Nullable value, NSRange range, BOOL * _Nonnull stop) {
-					[bodyMutableAttributedText removeAttribute:NSForegroundColorAttributeName range:range]; 
-					[bodyMutableAttributedText addAttribute:NSForegroundColorAttributeName value:textColor range:range];
-				}];
-				[bodyMutableAttributedText endEditing];
-
-				[post setSelfText:body];
-				[post setAuthor:author];
-				[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
-				[post setPreviewFeedPostTextString:bodyMutableAttributedText];
-				
-				if (getRedditVersionPart(1) >= 44){
-					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-				} else if (getRedditVersionPart(1) >= 38) {
-					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
-				} else {
-					[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
-					[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] titleNode] configureNodes];
-				}
-				
-				[request release];
-				[queue release];
-				[bodyMutableAttributedText release];
-			}];			
+			[%c(TFHelper) getUndeleteDataWithID:[[post pk] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
 		}	
 	}
 }
+
+%new
+-(void) completeUndeletePostAction:(NSDictionary *) data{
+	Post *post = [self post];
+	
+	NSString *author = data[@"author"];
+	NSString *body = data[@"body"];
+	
+	id themeManager;
+	id isNightMode;
+	id textColor;
+	
+	if (getRedditVersionPart(1) >= 45){
+		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager darkTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager lightTheme] bodyTextColor];
+		}
+		
+		[themeManager release];
+		
+	} else if (getRedditVersionPart(1) >= 37){
+		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager nightTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager dayTheme] bodyTextColor];
+		}
+		
+		[themeManager release];
+		
+	} else {
+		themeManager  = [%c(ThemeManager) sharedManager];
+		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		
+		if (isNightMode) {
+			textColor = [[themeManager nightTheme] bodyTextColor];
+		} else{
+			textColor = [[themeManager dayTheme] bodyTextColor];
+		}
+	}			
+
+	NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+
+	[bodyMutableAttributedText beginEditing];
+	[bodyMutableAttributedText enumerateAttribute:NSForegroundColorAttributeName inRange:NSMakeRange(0, bodyMutableAttributedText.length) options:0 usingBlock:^(id  _Nullable value, NSRange range, BOOL * _Nonnull stop) {
+		[bodyMutableAttributedText removeAttribute:NSForegroundColorAttributeName range:range]; 
+		[bodyMutableAttributedText addAttribute:NSForegroundColorAttributeName value:textColor range:range];
+	}];
+	[bodyMutableAttributedText endEditing];
+
+	[post setSelfText:body];
+	[post setAuthor:author];
+	[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
+	[post setPreviewFeedPostTextString:bodyMutableAttributedText];
+	
+	if (getRedditVersionPart(1) >= 44){
+		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
+	} else if (getRedditVersionPart(1) >= 38) {
+		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
+	} else {
+		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
+		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] titleNode] configureNodes];
+	}
+	
+	[bodyMutableAttributedText release];
+}
+
 %end
 
 %end
@@ -404,47 +368,8 @@ int getRedditVersionPart(int index){
 		[self dismissViewControllerAnimated:YES completion:nil];	
 		
 		Comment *comment = [self comment];
-
-		NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
-			NSString *author = @"[author]";
-			NSString *body = @"[body]";
-
-			if (data != nil && error == nil){
-				id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-				if ([[jsonData objectForKey:@"data"] count] != 0){
-					author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-					body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-					if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-						body = @"[pushshift was unable to archive this]";
-					}
-				} else {
-					body = @"[pushshift has not archived this yet]";
-				}
-			} else if (error != nil || data == nil){
-				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-			}
-			
-			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-
-			[comment setAuthor:author];
-			[comment setBodyText:body];
-			[comment setBodyRichTextAttributed:bodyMutableAttributedText];
-			[comment setBodyAttributedText:bodyMutableAttributedText];
-			
-			[[self commentActionSheetDelegate] performSelectorOnMainThread:@selector(updateComments) withObject:nil waitUntilDone:NO];
-
-			[request release];
-			[queue release];
-			[bodyMutableAttributedText release];
-		}];	
+		[%c(TFHelper) getUndeleteDataWithID:[[comment pk] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 	}
 }
 
@@ -457,51 +382,31 @@ int getRedditVersionPart(int index){
 		[self dismissViewControllerAnimated:YES completion:nil];	
 		
 		Comment *comment = [self comment];
-
-		NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-		NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment pk] componentsSeparatedByString:@"_"][1]]]];
-		[request setHTTPMethod:@"GET"];
-		[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-		[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
 		
-			NSString *author = @"[author]";
-			NSString *body = @"[body]";
-
-			if (data != nil && error == nil){
-				id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-				if ([[jsonData objectForKey:@"data"] count] != 0){
-					author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-					body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-					if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-						body = @"[pushshift was unable to archive this]";
-					}
-				} else {
-					body = @"[pushshift has not archived this yet]";
-				}
-			} else if (error != nil || data == nil){
-				body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-			}
-			
-			NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-
-			[comment setAuthor:author];
-			[comment setBodyText:body];
-			[comment setBodyAttributedText:bodyMutableAttributedText];
-			
-			if (getRedditVersionPart(1) >= 12) {
-				[comment setBodyRichTextAttributed:bodyMutableAttributedText];
-			}
-			
-			[[self commentActionSheetDelegate] performSelectorOnMainThread:@selector(updateComments) withObject:nil waitUntilDone:NO];
-
-			[request release];
-			[queue release];
-			[bodyMutableAttributedText release];
-		}];	
+		[%c(TFHelper) getUndeleteDataWithID:[[comment pk] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 	}
+}
+
+%new 
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
+	
+	Comment *comment = [self comment];
+	
+	NSString *body = data[@"body"];
+	
+	NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+	
+	[comment setAuthor:data[@"author"]];
+	[comment setBodyText:body];
+	[comment setBodyAttributedText:bodyMutableAttributedText];
+
+	if (getRedditVersionPart(1) >= 12) {
+		[comment setBodyRichTextAttributed:bodyMutableAttributedText];
+	}
+
+	[[self commentActionSheetDelegate] updateComments];
+
+	[bodyMutableAttributedText release];
 }
 %end
 
@@ -552,46 +457,7 @@ int getRedditVersionPart(int index){
 		
 		if ([post isSelfPost]){
 			
-			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];	
-			[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-				
-				NSString *author = @"[author]";
-				NSString *body = @"[body]";
-				
-				if (data != nil && error == nil){
-					id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-					if ([[jsonData objectForKey:@"data"] count] != 0){
-						author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-						body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-						if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-							body = @"[pushshift was unable to archive this]";
-						} 
-					} else {
-						body = @"[pushshift has not archived this yet]";
-					}
-				} else if (error != nil || data == nil){
-					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-				}				
-				
-				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-				
-				[post setSelfText:body];
-				[post setAuthor:author];
-				[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
-				[post setPreviewFeedPostTextString:bodyMutableAttributedText];
-				
-				[[self postActionSheetDelegate] performSelectorOnMainThread:@selector(updatePostText) withObject:nil waitUntilDone:NO];
-				
-				[request release];
-				[queue release];
-				[bodyMutableAttributedText release];
-			}];			
+			[%c(TFHelper) getUndeleteDataWithID:[[post pk] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
 		}	
 	}
 }
@@ -608,56 +474,37 @@ int getRedditVersionPart(int index){
 		
 		if ([post isSelfPost]){
 			
-			NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-			NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-			[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post pk] componentsSeparatedByString:@"_"][1]]]];
-			[request setHTTPMethod:@"GET"];
-			[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-			[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-				
-				NSString *author = @"[author]";
-				NSString *body = @"[body]";
-				
-				if (data != nil && error == nil){
-					id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-					if ([[jsonData objectForKey:@"data"] count] != 0){
-						author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-						body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-						if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-							body = @"[pushshift was unable to archive this]";
-						} 
-					} else {
-						body = @"[pushshift has not archived this yet]";
-					}
-				} else if (error != nil || data == nil){
-					body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-				}				
-				
-				NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
-				
-				[post setAuthor:author];
-				[post setSelfText:body];
-				[post setSelfTextAttributed:bodyMutableAttributedText];
-				
-				if (getRedditVersionPart(1) >= 8) {
-					[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
-				}
-				
-				if (getRedditVersionPart(1) >= 15) {
-					[post setPreviewFeedPostTextString:bodyMutableAttributedText];
-				} 
-				
-				[[self postActionSheetDelegate] performSelectorOnMainThread:@selector(updatePostText) withObject:nil waitUntilDone:NO];
-				
-				[request release];
-				[queue release];
-				[bodyMutableAttributedText release];
-			}];			
+			[%c(TFHelper) getUndeleteDataWithID:[[post pk] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
 		}	
 	}
 }
+
+%new
+-(void) completeUndeletePostAction:(NSDictionary *) data{
+	
+	Post *post = [self post];
+	
+	NSString *body = data[@"body"];
+	
+	NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+	
+	[post setAuthor:data[@"author"]];
+	[post setSelfText:body];
+	[post setSelfTextAttributed:bodyMutableAttributedText];
+	
+	if (getRedditVersionPart(1) >= 8) {
+		[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
+	}
+	
+	if (getRedditVersionPart(1) >= 15) {
+		[post setPreviewFeedPostTextString:bodyMutableAttributedText];
+	} 
+	
+	[[self postActionSheetDelegate] updatePostText];
+	
+	[bodyMutableAttributedText release];
+}
+
 %end
 
 %end

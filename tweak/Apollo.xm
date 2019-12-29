@@ -1,5 +1,6 @@
 
 #import "Apollo.h"
+#import "assets/TFHelper.h"
 
 static BOOL isTFDeletedOnly;
 static BOOL isApolloEnabled;
@@ -38,59 +39,6 @@ NSDictionary* apolloBodyAttributes = nil;
 %hook ApolloCommentCellNode
 %property(strong,nonatomic) id undeleteButton;
 
-%new
--(void) didTapUndeleteButton:(id) sender{
-	
-	[sender setEnabled:NO];
-
-	id bodyNode = MSHookIvar<id>(self, "bodyNode");
-	id authorNode = MSHookIvar<id>(self, "authorNode");
-	id authorTextNode = [authorNode subnodes][0];
-	id comment = MSHookIvar<id>(self, "comment");
-
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-	
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-		
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		id prevAuthorAttributedString = [authorTextNode attributedString];
-		NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
-		NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
-
-		[authorTextNode setAttributedText:newAuthorAttributedString];
-		[authorTextNode setAttributedString:newAuthorAttributedString];
-		
-		[comment setAuthor:author];
-		
-		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
-		
-		[sender setEnabled:YES];
-		
-	}];
-}
-
 -(void) didLoad {
 	%orig;
 	
@@ -128,8 +76,41 @@ NSDictionary* apolloBodyAttributes = nil;
 		CGFloat nodeSpacing =[ageNode frame].origin.x - nodeFrame.origin.x - nodeFrame.size.width;
 
 		[[self undeleteButton] setFrame:CGRectMake(nodeFrame.origin.x - imageSize - nodeSpacing, centerHeight - (imageSize / 2), imageSize, imageSize)];
-		
 	}
+}
+
+%new
+-(void) didTapUndeleteButton:(id) sender{
+	
+	[sender setEnabled:NO];
+
+	id comment = MSHookIvar<id>(self, "comment");
+	
+	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
+}
+
+%new
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
+	
+	id comment = MSHookIvar<id>(self, "comment");
+	id bodyNode = MSHookIvar<id>(self, "bodyNode");
+	id authorNode = MSHookIvar<id>(self, "authorNode");
+	id authorTextNode = [authorNode subnodes][0];
+	
+	NSString *author = data[@"author"];
+	
+	id prevAuthorAttributedString = [authorTextNode attributedString];
+	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
+	NSAttributedString *newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
+
+	[authorTextNode setAttributedText:newAuthorAttributedString];
+	[authorTextNode setAttributedString:newAuthorAttributedString];
+	
+	[comment setAuthor:author];
+	
+	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:data[@"body"] withAttributes:apolloBodyAttributes]];
+	
+	[data[@"sender"] setEnabled:YES];
 }
 
 %end
@@ -137,61 +118,6 @@ NSDictionary* apolloBodyAttributes = nil;
 
 %hook ApolloCommentsHeaderCellNode
 %property(strong, nonatomic) id undeleteButton;
-
-%new
--(void) didTapUndeleteButton:(id) sender{
-	
-	[sender setEnabled:NO];
-
-	id bodyNode = MSHookIvar<id>(self, "bodyNode");
-	id postInfoNode = MSHookIvar<id>(self, "postInfoNode");
-	id authorNode = MSHookIvar<id>(postInfoNode, "authorButtonNode");
-	id authorTextNode = [authorNode subnodes][0];
-	id post = MSHookIvar<id>(self, "link");
-
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext",[[post fullName] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-		
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"selftext"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
-		
-		//MSHookIvar<NSString*>(post, "_author") = author; //Crashes when clicking on author name. You will have to search the author name to go find the profile.
-
-		author = [NSString stringWithFormat:@"by %@", author];
-
-		id prevAuthorAttributedString = [authorTextNode attributedString];
-		NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
-		NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
-
-		[authorTextNode setAttributedText:newAuthorAttributedString];
-		[authorTextNode setAttributedString:newAuthorAttributedString];
-		
-		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
-		
-		[sender setEnabled:YES];
-	}];
-}
 
 -(void) didLoad{
 	%orig;
@@ -232,6 +158,43 @@ NSDictionary* apolloBodyAttributes = nil;
 		
 		[[self undeleteButton] setFrame:CGRectMake(buttonXPos, centerHeight - (imageSize / 2), imageSize, imageSize)];
 	}
+}
+
+%new
+-(void) didTapUndeleteButton:(id) sender{
+	
+	[sender setEnabled:NO];
+	
+	id post = MSHookIvar<id>(self, "link");
+	
+	[%c(TFHelper) getUndeleteDataWithID:[[post fullName] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
+}
+
+%new
+-(void) completeUndeletePostAction:(NSDictionary *) data{
+	
+	id bodyNode = MSHookIvar<id>(self, "bodyNode");
+	id postInfoNode = MSHookIvar<id>(self, "postInfoNode");
+	id authorNode = MSHookIvar<id>(postInfoNode, "authorButtonNode");
+	id authorTextNode = [authorNode subnodes][0];
+	
+	NSString *author = data[@"author"];
+	
+	//id post = MSHookIvar<id>(self, "link");
+	//MSHookIvar<NSString*>(post, "_author") = author; //Crashes when clicking on author name. You will have to search the author name to go find the profile.
+
+	author = [NSString stringWithFormat:@"by %@", author];
+
+	id prevAuthorAttributedString = [authorTextNode attributedString];
+	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
+	NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
+
+	[authorTextNode setAttributedText:newAuthorAttributedString];
+	[authorTextNode setAttributedString:newAuthorAttributedString];
+	
+	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:data[@"body"] withAttributes:apolloBodyAttributes]];
+	
+	[data[@"sender"] setEnabled:YES];
 }
 
 %end

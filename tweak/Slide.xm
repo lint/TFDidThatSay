@@ -1,6 +1,7 @@
 
 #import "Slide.h"
-#import "assets/MMMarkdown.h"
+#import "assets/TFHelper.h"
+#import "assets/MMMarkdown/MMMarkdown.h"
 
 static BOOL isSlideEnabled;
 static BOOL isTFDeletedOnly;
@@ -288,129 +289,112 @@ static UIButton * createUndeleteButton(){
 -(void) handleUndeleteComment:(id) sender{
 	
 	[sender setEnabled:NO];
+
+	id comment = MSHookIvar<id>(self, "comment");
+	
+	[%c(TFHelper) getUndeleteDataWithID:[[comment id] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
+}
+
+%new
+-(void) completeUndeleteCommentAction:(NSDictionary *) data{
 	
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	id textStackDisplayView = MSHookIvar<id>(self, "commentBody");
 	id comment = MSHookIvar<id>(self, "comment");
 	
-	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-
-	[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body",[[comment id] componentsSeparatedByString:@"_"][1]]]];
-	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:pushshiftRequestTimeoutValue];
-
-	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+	NSString *author = data[@"author"];
+	NSString *body = data[@"body"];
 	
-		NSString *author = @"[author]";
-		NSString *body = @"[body]";
-
-		if (data != nil && error == nil){
-			id jsonData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-			if ([[jsonData objectForKey:@"data"] count] != 0){
-				author = [[jsonData objectForKey:@"data"][0] objectForKey:@"author"];
-				body = [[jsonData objectForKey:@"data"][0] objectForKey:@"body"];
-				if ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"]){
-					body = @"[pushshift was unable to archive this]";
-				}
-			} else {
-				body = @"[pushshift has not archived this yet]";
-			}
-		} else if (error != nil || data == nil){
-			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
-		}
+	//Attributed string generation rewrote from Slide_for_Reddit.TextDisplayStackView.createAttributedChunk(...) 
+	
+	UIFont *font = [%c(FontGenerator) fontOfSize:MSHookIvar<CGFloat>(textStackDisplayView, "fontSize") submission:NO willOffset:YES];
 		
-		//Attributed string generation rewrote from Slide_for_Reddit.TextDisplayStackView.createAttributedChunk(...) 
-		
-		UIFont *font = [%c(FontGenerator) fontOfSize:MSHookIvar<CGFloat>(textStackDisplayView, "fontSize") submission:NO willOffset:YES];
+	NSString *themeName = [userDefaults stringForKey:@"theme"];
+	UIColor *fontColor = [%c(ColorUtil) fontColorForTheme:themeName];
+	UIColor *accentColor = [%c(ColorUtil) accentColorForSub:[comment subreddit]];
+	
+	NSString *html = [%c(MMMarkdown) HTMLStringWithMarkdown:body extensions:MMMarkdownExtensionsGitHubFlavored error:nil];
+	html = [[html stringByReplacingOccurrencesOfString:@"<sup>" withString:@"<font size=\"1\">"] stringByReplacingOccurrencesOfString:@"</sup>" withString:@"</font>"];
+	html = [[html stringByReplacingOccurrencesOfString:@"<del>" withString:@"<font color=\"green\">"] stringByReplacingOccurrencesOfString:@"</del>" withString:@"</font>"];
+	html = [[html stringByReplacingOccurrencesOfString:@"<code>" withString:@"<font color=\"blue\">"] stringByReplacingOccurrencesOfString:@"</code>" withString:@"</font>"];
+	html = [html stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+	
+	DTHTMLAttributedStringBuilder *dthtmlBuilder = [[%c(DTHTMLAttributedStringBuilder) alloc] initWithHTML:[html dataUsingEncoding:NSUTF8StringEncoding] options:@{@"DTUseiOS6Attributes": @YES, @"DTDefaultTextColor": fontColor, @"DTDefaultFontSize": @([font pointSize])} documentAttributes:nil];
+	
+	NSMutableAttributedString *htmlAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:[dthtmlBuilder generatedAttributedString]];
+	NSRange htmlStringRange = NSMakeRange(0, [htmlAttributedString length]);
+	
+	[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t•\t" withString:@" • " options:0 range: htmlStringRange];
+	[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t◦\t" withString:@"  ◦ " options:0 range: htmlStringRange];
+	[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t▪\t" withString:@"   ▪ " options:0	 range: htmlStringRange];
+	
+	[htmlAttributedString removeAttribute:@"CTForegroundColorFromContext" range:htmlStringRange];
+	
+	[htmlAttributedString enumerateAttributesInRange:htmlStringRange options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
+		for (NSString *key in attributes){
 			
-		NSString *themeName = [userDefaults stringForKey:@"theme"];
-		UIColor *fontColor = [%c(ColorUtil) fontColorForTheme:themeName];
-		UIColor *accentColor = [%c(ColorUtil) accentColorForSub:[comment subreddit]];
-		
-		NSString *html = [%c(MMMarkdown) HTMLStringWithMarkdown:body extensions:MMMarkdownExtensionsGitHubFlavored error:nil];
-		html = [[html stringByReplacingOccurrencesOfString:@"<sup>" withString:@"<font size=\"1\">"] stringByReplacingOccurrencesOfString:@"</sup>" withString:@"</font>"];
-		html = [[html stringByReplacingOccurrencesOfString:@"<del>" withString:@"<font color=\"green\">"] stringByReplacingOccurrencesOfString:@"</del>" withString:@"</font>"];
-		html = [[html stringByReplacingOccurrencesOfString:@"<code>" withString:@"<font color=\"blue\">"] stringByReplacingOccurrencesOfString:@"</code>" withString:@"</font>"];
-		html = [html stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-		
-		DTHTMLAttributedStringBuilder *dthtmlBuilder = [[%c(DTHTMLAttributedStringBuilder) alloc] initWithHTML:[html dataUsingEncoding:NSUTF8StringEncoding] options:@{@"DTUseiOS6Attributes": @YES, @"DTDefaultTextColor": fontColor, @"DTDefaultFontSize": @([font pointSize])} documentAttributes:nil];
-		
-		NSMutableAttributedString *htmlAttributedString = [[NSMutableAttributedString alloc] initWithAttributedString:[dthtmlBuilder generatedAttributedString]];
-		NSRange htmlStringRange = NSMakeRange(0, [htmlAttributedString length]);
-		
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t•\t" withString:@" • " options:0 range: htmlStringRange];
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t◦\t" withString:@"  ◦ " options:0 range: htmlStringRange];
-		[[htmlAttributedString mutableString] replaceOccurrencesOfString:@"\t▪\t" withString:@"   ▪ " options:0	 range: htmlStringRange];
-		
-		[htmlAttributedString removeAttribute:@"CTForegroundColorFromContext" range:htmlStringRange];
-		
-		[htmlAttributedString enumerateAttributesInRange:htmlStringRange options:NSAttributedStringEnumerationLongestEffectiveRangeNotRequired usingBlock:^(NSDictionary *attributes, NSRange range, BOOL *stop) {
-			for (NSString *key in attributes){
-				
-				if ([(UIColor *) attributes[key] isKindOfClass:[UIColor class]]){
-					UIColor *attrColor = (UIColor *) attributes[key];
-					if ([[attrColor hexString] isEqualToString:@"#0000FF"]){
-						UIFont *tempFont = [UIFont fontWithName:@"Courier" size:font.pointSize];
-						
-						[htmlAttributedString setAttributes:@{NSForegroundColorAttributeName: accentColor, NSBackgroundColorAttributeName: [%c(ColorUtil) backgroundColorForTheme:themeName], NSFontAttributeName: (tempFont ? tempFont : font)} range:range];
-					} else if ([[attrColor hexString] isEqualToString:@"#008000"]) {
-						[htmlAttributedString setAttributes:@{NSForegroundColorAttributeName: fontColor, NSFontAttributeName:font} range:range];
-					}
-				} else if ([(NSURL *) attributes[key] isKindOfClass:[NSURL class]]){
-					NSURL *attrUrl = (NSURL *)attributes[key];
-
-					if (([userDefaults objectForKey:@"ENLARGE_LINKS"] == nil) ? YES : [userDefaults boolForKey:@"ENLARGE_LINKS"]){
-						[htmlAttributedString addAttribute:NSFontAttributeName value:[%c(FontGenerator) boldFontOfSize:18 submission:NO willOffset:YES] range:range];
-					}
+			if ([(UIColor *) attributes[key] isKindOfClass:[UIColor class]]){
+				UIColor *attrColor = (UIColor *) attributes[key];
+				if ([[attrColor hexString] isEqualToString:@"#0000FF"]){
+					UIFont *tempFont = [UIFont fontWithName:@"Courier" size:font.pointSize];
 					
-					[htmlAttributedString addAttribute:NSForegroundColorAttributeName value:accentColor range:range]; 
-					[htmlAttributedString addAttribute:NSUnderlineColorAttributeName value:[UIColor clearColor] range:range];
-		
-					//skipping showLinkContentType b/c not necessary and spoilers b/c MMMarkdown doesn't support them
+					[htmlAttributedString setAttributes:@{NSForegroundColorAttributeName: accentColor, NSBackgroundColorAttributeName: [%c(ColorUtil) backgroundColorForTheme:themeName], NSFontAttributeName: (tempFont ? tempFont : font)} range:range];
+				} else if ([[attrColor hexString] isEqualToString:@"#008000"]) {
+					[htmlAttributedString setAttributes:@{NSForegroundColorAttributeName: fontColor, NSFontAttributeName:font} range:range];
+				}
+			} else if ([(NSURL *) attributes[key] isKindOfClass:[NSURL class]]){
+				NSURL *attrUrl = (NSURL *)attributes[key];
 
-					[htmlAttributedString yy_setTextHighlightRange:range color: accentColor backgroundColor:nil userInfo:@{@"url": attrUrl}];
-					break; 
-				} 
-			}
-		}];
-		
-		[htmlAttributedString beginEditing];
-		[htmlAttributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, [htmlAttributedString length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop){
-			
-			UIFont *attrFont = (UIFont *)value;
-			
-			BOOL isBold = (attrFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitBold) != 0;
-			BOOL isItalic = (attrFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitItalic) != 0;
-			
-			UIFont *newFont = font;
-			
-			if (isBold){
-				newFont = [%c(FontGenerator) boldFontOfSize:attrFont.pointSize submission:NO willOffset:NO];
-			} else if (isItalic){
-				newFont = [%c(FontGenerator) italicFontOfSize:attrFont.pointSize submission:NO willOffset:NO];
-			}
-		
-			[htmlAttributedString removeAttribute:NSFontAttributeName range:range];
-			[htmlAttributedString addAttribute:NSFontAttributeName value:newFont range:range];	
-		
-		}];
-		[htmlAttributedString endEditing];
-		
-		NSMutableAttributedString *newCommentText = [MSHookIvar<NSMutableAttributedString *>(self, "cellContent") initWithAttributedString:htmlAttributedString];
-		NSAttributedString *tempAttributedString = [[NSAttributedString alloc] initWithString:@""];
-		[newCommentText appendAttributedString:tempAttributedString]; //to keep the compiler happy
-		
-		[comment setAuthor:author];
-		[comment setBody:body];	
-		
-		id controller = MSHookIvar<id>(self, "parent");
-		
-		[self performSelectorOnMainThread:@selector(showMenu:) withObject:nil waitUntilDone:YES];
-		[MSHookIvar<id>(controller, "tableView") performSelectorOnMainThread:@selector(reloadData) withObject:nil waitUntilDone:NO];
-		
-		[sender setEnabled:YES];
+				if (([userDefaults objectForKey:@"ENLARGE_LINKS"] == nil) ? YES : [userDefaults boolForKey:@"ENLARGE_LINKS"]){
+					[htmlAttributedString addAttribute:NSFontAttributeName value:[%c(FontGenerator) boldFontOfSize:18 submission:NO willOffset:YES] range:range];
+				}
+				
+				[htmlAttributedString addAttribute:NSForegroundColorAttributeName value:accentColor range:range]; 
+				[htmlAttributedString addAttribute:NSUnderlineColorAttributeName value:[UIColor clearColor] range:range];
+	
+				//skipping showLinkContentType b/c not necessary and spoilers b/c MMMarkdown doesn't support them
+
+				[htmlAttributedString yy_setTextHighlightRange:range color: accentColor backgroundColor:nil userInfo:@{@"url": attrUrl}];
+				break; 
+			} 
+		}
 	}];
+	
+	[htmlAttributedString beginEditing];
+	[htmlAttributedString enumerateAttribute:NSFontAttributeName inRange:NSMakeRange(0, [htmlAttributedString length]) options:0 usingBlock:^(id value, NSRange range, BOOL *stop){
+		
+		UIFont *attrFont = (UIFont *)value;
+		
+		BOOL isBold = (attrFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitBold) != 0;
+		BOOL isItalic = (attrFont.fontDescriptor.symbolicTraits & UIFontDescriptorTraitItalic) != 0;
+		
+		UIFont *newFont = font;
+		
+		if (isBold){
+			newFont = [%c(FontGenerator) boldFontOfSize:attrFont.pointSize submission:NO willOffset:NO];
+		} else if (isItalic){
+			newFont = [%c(FontGenerator) italicFontOfSize:attrFont.pointSize submission:NO willOffset:NO];
+		}
+	
+		[htmlAttributedString removeAttribute:NSFontAttributeName range:range];
+		[htmlAttributedString addAttribute:NSFontAttributeName value:newFont range:range];	
+	
+	}];
+	[htmlAttributedString endEditing];
+	
+	NSMutableAttributedString *newCommentText = [MSHookIvar<NSMutableAttributedString *>(self, "cellContent") initWithAttributedString:htmlAttributedString];
+	NSAttributedString *tempAttributedString = [[NSAttributedString alloc] initWithString:@""];
+	[newCommentText appendAttributedString:tempAttributedString]; //to keep the compiler happy
+	
+	[comment setAuthor:author];
+	[comment setBody:body];	
+	
+	id controller = MSHookIvar<id>(self, "parent");
+	
+	[self showMenu:nil];
+	[MSHookIvar<id>(controller, "tableView") reloadData];
+	
+	[data[@"sender"] setEnabled:YES];
 }
 
 %end

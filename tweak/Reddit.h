@@ -21,6 +21,10 @@
 -(void) reloadPostSection:(BOOL) arg1;
 -(void) feedPostViewDidUpdatePost:(id) arg1 shouldReloadFeed:(BOOL) arg2;
 -(void) updateFloatingViews;
+
+//custom elements
+-(void) updateComments;
+-(void) updatePostText;
 @end
 
 @interface CommentActionSheetViewController : UIViewController
