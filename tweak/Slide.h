@@ -15,6 +15,21 @@
 -(void) addUndeleteButtonToMenu;
 @end
 
+/* -- Post Interfaces -- */
+
+@interface RSubmission
+@property(assign, nonatomic) BOOL isSelf;
+@end
+
+@interface CommentViewController : UIViewController
+-(void) refresh:(id) arg1;
+
+//custom elements
+@property(strong, nonatomic) UIButton *undeleteButton;
+-(void) addUndeleteButtonToToolbar;
+-(BOOL) shouldAddUndeleteButtonToToolbar;
+@end
+
 /* -- Utility Interfaces -- */
 
 @interface UIColor ()

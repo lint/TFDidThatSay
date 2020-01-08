@@ -9,6 +9,10 @@ static CGFloat pushshiftRequestTimeoutValue;
 
 %group Slide
 
+BOOL shouldSlideOverridePostInfo = NO;
+NSString *slidePostOverrideAuthor;
+NSString *slidePostOverrideBodyHtml;
+
 @implementation FontGenerator
 
 +(UIFont *) fontOfSize:(CGFloat) size submission:(BOOL) isSubmission willOffset:(BOOL) willOffset{
@@ -184,7 +188,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 @end
 
 
-static UIButton * createUndeleteButton(){
+static UIButton *createUndeleteButton(){
 	
 	UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];		
 	UIImage *undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160white.png"];
@@ -207,11 +211,6 @@ static UIButton * createUndeleteButton(){
 	
 	return undeleteButton;
 }
-
-
-//because it wont compile without this
-%hook RComment
-%end
 
 
 %hook UIColor
@@ -308,7 +307,7 @@ static UIButton * createUndeleteButton(){
 	//Attributed string generation rewrote from Slide_for_Reddit.TextDisplayStackView.createAttributedChunk(...) 
 	
 	UIFont *font = [%c(FontGenerator) fontOfSize:MSHookIvar<CGFloat>(textStackDisplayView, "fontSize") submission:NO willOffset:YES];
-		
+	
 	NSString *themeName = [userDefaults stringForKey:@"theme"];
 	UIColor *fontColor = [%c(ColorUtil) fontColorForTheme:themeName];
 	UIColor *accentColor = [%c(ColorUtil) accentColorForSub:[comment subreddit]];
@@ -399,6 +398,130 @@ static UIButton * createUndeleteButton(){
 
 %end
 
+
+%hook RSubmission
+
+-(id) author{
+	if (shouldSlideOverridePostInfo){
+		return slidePostOverrideAuthor;
+	} else {
+		return %orig;
+	}
+}
+
+-(id) htmlBody{
+	if (shouldSlideOverridePostInfo){
+		return slidePostOverrideBodyHtml;
+	}
+	else {
+		return %orig;
+	}
+}
+
+%end
+
+
+%hook CommentViewController
+%property(strong, nonatomic) UIButton *undeleteButton;
+
+-(void) viewDidLoad {
+	%orig;
+	
+	shouldSlideOverridePostInfo = NO;
+	slidePostOverrideAuthor = nil;
+	slidePostOverrideBodyHtml = nil;
+			
+	UIButton *undeleteButton = createUndeleteButton();
+	[undeleteButton setImage:[[undeleteButton currentImage] imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate] forState:UIControlStateNormal];
+	[undeleteButton addTarget:self action:@selector(handleUndeletePost:) forControlEvents:UIControlEventTouchUpInside];
+	[self setUndeleteButton:undeleteButton];
+}
+
+-(void) viewDidLayoutSubviews{
+	%orig;
+	
+	if ([self undeleteButton]){
+		if ([self shouldAddUndeleteButtonToToolbar]){
+			[self addUndeleteButtonToToolbar];
+		}
+	}
+}
+
+-(void) loadAll:(id) arg1{
+	%orig;
+	
+	if ([self undeleteButton]){
+		if ([self shouldAddUndeleteButtonToToolbar]){
+			[self addUndeleteButtonToToolbar];
+		}
+	}
+}
+
+%new
+-(BOOL) shouldAddUndeleteButtonToToolbar{
+	id post = MSHookIvar<id>(self, "submission");
+	
+	if ([post isSelf]){
+		
+		NSString *postBody = [post body];
+		
+		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
+%new
+-(void) addUndeleteButtonToToolbar{
+	UIToolbar *toolbar = [[self navigationController] toolbar];
+	NSMutableArray *toolbarItems = [[toolbar items] mutableCopy];
+	UIView *firstView = [toolbarItems[0] customView];
+	
+	if (firstView){	
+		UIColor *tintColor = [toolbar tintColor];
+		
+		UIButton *undeleteButton = [self undeleteButton];
+		[undeleteButton setTintColor:tintColor];
+		
+		if ([firstView isMemberOfClass:[UIView class]]){
+			if (![undeleteButton isDescendantOfView:firstView]){
+				[firstView addSubview:undeleteButton];
+				[undeleteButton setFrame:firstView.bounds];
+			}
+		} else if ([firstView isMemberOfClass:[UIButton class]] && undeleteButton != firstView){
+			UIBarButtonItem *undeleteItem = [[UIBarButtonItem alloc] initWithCustomView:undeleteButton];
+			
+			[toolbarItems insertObject:toolbarItems[1] atIndex:0];
+			[toolbarItems insertObject:undeleteItem atIndex:0];
+			[toolbar setItems:toolbarItems animated:NO];
+		}
+	}
+}
+
+%new
+-(void) handleUndeletePost:(id) sender{
+	shouldSlideOverridePostInfo = YES;
+	
+	[sender setEnabled:NO];
+	
+	[%c(TFHelper) getUndeleteDataWithID:[MSHookIvar<id>(self, "submission") name] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];	
+}
+
+%new
+-(void) completeUndeletePostAction:(NSDictionary *) data{
+	
+	slidePostOverrideAuthor = data[@"author"];
+	slidePostOverrideBodyHtml = [%c(MMMarkdown) HTMLStringWithMarkdown:data[@"body"] extensions:MMMarkdownExtensionsGitHubFlavored error:nil];
+	
+	[self refresh:nil];
+	
+	[data[@"sender"] setEnabled:YES];
+}
+
+%end
+
 %end
 
 
@@ -447,7 +570,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 			
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			%init(Slide, CommentDepthCell = objc_getClass("Slide_for_Reddit.CommentDepthCell"), RComment = objc_getClass("Slide_for_Reddit.RSubmission"));
+			%init(Slide, CommentDepthCell = objc_getClass("Slide_for_Reddit.CommentDepthCell"), RSubmission = objc_getClass("Slide_for_Reddit.RSubmission"), CommentViewController = objc_getClass("Slide_for_Reddit.CommentViewController"));
 		}
 	}
 }
