@@ -98,6 +98,7 @@ NSDictionary* apolloBodyAttributes = nil;
 	id authorTextNode = [authorNode subnodes][0];
 	
 	NSString *author = data[@"author"];
+	NSString *body = data[@"body"];
 	
 	id prevAuthorAttributedString = [authorTextNode attributedString];
 	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
@@ -106,10 +107,11 @@ NSDictionary* apolloBodyAttributes = nil;
 	[authorTextNode setAttributedText:newAuthorAttributedString];
 	[authorTextNode setAttributedString:newAuthorAttributedString];
 	
+	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	
 	[comment setAuthor:author];
-	
-	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:data[@"body"] withAttributes:apolloBodyAttributes]];
-	
+	[comment setBody:body];
+
 	[data[@"sender"] setEnabled:YES];
 }
 
