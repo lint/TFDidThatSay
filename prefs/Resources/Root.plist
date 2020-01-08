@@ -22,79 +22,9 @@
 			<key>defaults</key>
 			<string>com.lint.undelete.prefs</string>
 			<key>key</key>
-			<string>isRedditEnabled</string>
-			<key>label</key>
-			<string>Enable Reddit</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isApolloEnabled</string>
-			<key>label</key>
-			<string>Enable Apollo</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isNarwhalEnabled</string>
-			<key>label</key>
-			<string>Enable Narwhal</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
 			<string>isAlienBlueEnabled</string>
 			<key>label</key>
 			<string>Enable Alien Blue</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isSlideEnabled</string>
-			<key>label</key>
-			<string>Enable Slide</string>
-		</dict>
-		<dict>
-			<key>PostNotification</key>
-			<string>com.lint.undelete.prefs.changed</string>
-			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.lint.undelete.prefs</string>
-			<key>key</key>
-			<string>isBaconReaderEnabled</string>
-			<key>label</key>
-			<string>Enable BaconReader</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -120,9 +50,79 @@
 			<key>defaults</key>
 			<string>com.lint.undelete.prefs</string>
 			<key>key</key>
+			<string>isApolloEnabled</string>
+			<key>label</key>
+			<string>Enable Apollo</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isBaconReaderEnabled</string>
+			<key>label</key>
+			<string>Enable BaconReader</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
 			<string>isBeamEnabled</string>
 			<key>label</key>
 			<string>Enable Beam</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isNarwhalEnabled</string>
+			<key>label</key>
+			<string>Enable Narwhal</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isRedditEnabled</string>
+			<key>label</key>
+			<string>Enable Reddit</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isSlideEnabled</string>
+			<key>label</key>
+			<string>Enable Slide</string>
 		</dict>
 		<dict>
 			<key>cell</key>
