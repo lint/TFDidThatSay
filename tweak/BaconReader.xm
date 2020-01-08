@@ -94,7 +94,7 @@ id tfStoryController;
 	
 	NSString *commentBody = [[arg1 comment] body];
 	
-	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 		shouldHaveBRUndeleteAction = YES;
 		tfCommentCellView = arg1;
 		tfStoryController = self;
@@ -111,7 +111,7 @@ id tfStoryController;
 	if ([[self story] is_selfValue]){
 		NSString *postBody = [[self story] selftext];
 		
-		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
 			shouldHaveBRUndeleteAction = YES;
 			tfCommentCellView = nil;
 			tfStoryController = self;

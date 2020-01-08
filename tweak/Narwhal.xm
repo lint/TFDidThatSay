@@ -49,7 +49,7 @@ void getUndeleteCommentData(id controller, id comment){
 			
 			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
 			
-			if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 				tfComment = [arg1 comment];
 				tfController = self;
 				shouldHaveUndeleteAction = YES;
@@ -68,7 +68,7 @@ void getUndeleteCommentData(id controller, id comment){
 		
 		NSString *postBody = [[self link] selfText];
 		
-		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
 			tfController = self;
 			tfComment = nil;
 			shouldHaveUndeleteAction = YES;
@@ -127,7 +127,7 @@ void getUndeleteCommentData(id controller, id comment){
 			
 			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
 			
-			if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 				tfComment = [arg1 comment];
 				tfController = self;
 				shouldHaveUndeleteAction = YES;

@@ -47,4 +47,19 @@
 	}];
 }
 
++(BOOL) shouldShowUndeleteButtonWithInfo:(NSString *) content isDeletedOnly:(BOOL) isDeletedOnly{
+	
+	if (!isDeletedOnly){
+		return YES;
+	} else {
+		if ([content isEqualToString:@"[deleted]"] || [content isEqualToString:@"[removed]"]){
+			return YES;
+		} else if ([content hasPrefix:@"[pushshift"] || [content hasPrefix:@"[an error occured"]){
+			return YES;
+		}
+	}
+	
+	return NO;
+}
+
 @end

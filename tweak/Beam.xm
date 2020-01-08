@@ -26,7 +26,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 		
 		NSString *commentBody = [[self comment] content];
 	
-		if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 			
 			CGFloat authorTextHeight = [[self authorButton] frame].size.height;
 			
@@ -114,7 +114,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 		
 		NSString *postBody = [[self post] content];
 		
-		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
 		
 			id moreButton = MSHookIvar<id>(self, "moreButton");
 			

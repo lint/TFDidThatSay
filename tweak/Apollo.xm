@@ -44,7 +44,7 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 	
 		CGFloat imageSize = 20.0f;
 
@@ -126,7 +126,7 @@ NSDictionary* apolloBodyAttributes = nil;
 	id postBody = [post selfText];
 
 	if ([post isSelfPost]){
-		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
 
 			CGFloat imageSize = 20.0f;
 

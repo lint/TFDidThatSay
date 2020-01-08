@@ -22,7 +22,7 @@ static CGFloat pushshiftRequestTimeoutValue;
 		body = [[(CommentNode *)arg1 comment] body];
 	} 
 	
-	if ((isTFDeletedOnly && ([body isEqualToString:@"[deleted]"] || [body isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:body isDeletedOnly:isTFDeletedOnly]){
 	
 		CGSize refSize = [[self buttons][0] frame].size;
 

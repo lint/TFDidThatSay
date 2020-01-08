@@ -35,7 +35,7 @@ id tfAntennaCommentCell;
 	
 	NSString *commentBody = [[[arg1 comment] commentText] body];
 	
-	if ((isTFDeletedOnly && ([commentBody isEqualToString:@"[deleted]"] || [commentBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly){
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 		tfAntennaController = self;
 		tfAntennaCommentCell = arg1;
 		shouldHaveAntennaUndeleteAction = YES;
@@ -115,7 +115,7 @@ id tfAntennaCommentCell;
 	NSString *postBody = [[post selfCommentText] body];
 	
 	if ([post isSelfPost]){
-		if ((isTFDeletedOnly && ([postBody isEqualToString:@"[deleted]"] || [postBody isEqualToString:@"[removed]"])) || !isTFDeletedOnly) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
 			isAbleToUndeletePost = YES;
 			
 			NSMutableArray *barButtons = [self defaultHeaderButtons];
