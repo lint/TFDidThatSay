@@ -6,22 +6,8 @@ static BOOL isRedditEnabled;
 static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
-static NSArray *redditVersion;
-
-int getRedditVersionPart(int index){
-	
-	if (![redditVersion[index] isEqual:[NSNull null]]){
-		return [redditVersion[index] intValue];
-	} else {
-		NSArray *newVersionArray = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
-		
-		if (![newVersionArray[index] isEqual:[NSNull null]]){
-			return [newVersionArray[index] intValue];
-		} else {
-			return [@[@4, @48, @1][index] intValue];
-		}
-	}
-}
+int firstVersionPart = 4;
+int secondVersionPart = 49;
 
 %group Reddit_v4_current
 
@@ -114,7 +100,7 @@ int getRedditVersionPart(int index){
 	id isNightMode;
 	id textColor;
 	
-	if (getRedditVersionPart(1) >= 45){
+	if (secondVersionPart >= 45){
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -126,7 +112,7 @@ int getRedditVersionPart(int index){
 		
 		[themeManager release];
 		
-	} else if (getRedditVersionPart(1) >= 37){
+	} else if (secondVersionPart >= 37){
 		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -241,7 +227,7 @@ int getRedditVersionPart(int index){
 	id isNightMode;
 	id textColor;
 	
-	if (getRedditVersionPart(1) >= 45){
+	if (secondVersionPart >= 45){
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -253,7 +239,7 @@ int getRedditVersionPart(int index){
 		
 		[themeManager release];
 		
-	} else if (getRedditVersionPart(1) >= 37){
+	} else if (secondVersionPart >= 37){
 		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -290,9 +276,9 @@ int getRedditVersionPart(int index){
 	[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 	[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 	
-	if (getRedditVersionPart(1) >= 44){
+	if (secondVersionPart >= 44){
 		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-	} else if (getRedditVersionPart(1) >= 38) {
+	} else if (secondVersionPart >= 38) {
 		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 	} else {
 		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
@@ -319,7 +305,7 @@ int getRedditVersionPart(int index){
 %new 
 -(void) updatePostText{
 	
-	if (getRedditVersionPart(1) >= 2){
+	if (secondVersionPart >= 2){
 		[self reloadPostSection:YES];
 	} else {
 		[self feedPostViewDidUpdatePost:[self postData] shouldReloadFeed:NO];
@@ -345,7 +331,7 @@ int getRedditVersionPart(int index){
 		
 		id undeleteItem;
 		
-		if (getRedditVersionPart(1) >= 18) {
+		if (secondVersionPart >= 18) {
 			undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
 		} else {
 			undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self comment]];
@@ -400,7 +386,7 @@ int getRedditVersionPart(int index){
 	[comment setBodyText:body];
 	[comment setBodyAttributedText:bodyMutableAttributedText];
 
-	if (getRedditVersionPart(1) >= 12) {
+	if (secondVersionPart >= 12) {
 		[comment setBodyRichTextAttributed:bodyMutableAttributedText];
 	}
 
@@ -430,7 +416,7 @@ int getRedditVersionPart(int index){
 			
 			id undeleteItem;
 			
-			if (getRedditVersionPart(1) >= 18) {
+			if (secondVersionPart >= 18) {
 				undeleteItem = [[%c(RUIActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
 			} else {
 				undeleteItem = [[%c(ActionSheetItem) alloc] initWithLeftIconImage:newImage text:@"TF did that say?" identifier:@"undeleteItemIdentifier" context:[self post]];
@@ -492,11 +478,11 @@ int getRedditVersionPart(int index){
 	[post setSelfText:body];
 	[post setSelfTextAttributed:bodyMutableAttributedText];
 	
-	if (getRedditVersionPart(1) >= 8) {
+	if (secondVersionPart >= 8) {
 		[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 	}
 	
-	if (getRedditVersionPart(1) >= 15) {
+	if (secondVersionPart >= 15) {
 		[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 	} 
 	
@@ -632,20 +618,30 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 	loadPrefs();
 	
 	NSString* processName = [[NSProcessInfo processInfo] processName];
-	redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+	
+	@try{
+		NSArray *redditVersion = [[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"] componentsSeparatedByString:@"."];
+		
+		firstVersionPart = [redditVersion[0] intValue];
+		secondVersionPart = [redditVersion[1] intValue];
+	}
+	@catch (NSException *exc){
+		firstVersionPart = 4;
+		secondVersionPart = 49;
+	}
 
 	if ([processName isEqualToString:@"Reddit"]){
 		if (isRedditEnabled) {
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			if (getRedditVersionPart(0) == 4){
-				if (getRedditVersionPart(1) <= 32){
+			if (firstVersionPart == 4){
+				if (secondVersionPart <= 32){
 					%init(Reddit_v4_ios10);
 				} else{
 					%init(Reddit_v4_current);
 				}	
-			} else if (getRedditVersionPart(0) == 3) {
+			} else if (firstVersionPart == 3) {
 				%init(Reddit_v3);
 			}
 		}
