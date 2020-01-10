@@ -26,6 +26,9 @@
 @property(assign,nonatomic) NSString *author;
 @property(assign,nonatomic) NSString *fullName;
 -(BOOL) isSelfPost;
+
+//custom elements
+@property(strong, nonatomic) NSString *undeleteAuthor;
 @end
 
 @interface CommentsHeaderCellNode
@@ -68,10 +71,12 @@
 
 @interface ASTextNode
 @property(assign,nonatomic) CGRect frame;
-@property(assign,nonatomic) id attributedString;
-@property(assign,nonatomic) id attributedText;
+@property(assign,nonatomic) NSAttributedString *attributedString;
+@property(assign,nonatomic) NSAttributedString *attributedText;
 @end
 
 @interface ApolloButtonNode
-@property(assign,nonatomic) NSArray *subnodes;
+@property(assign,nonatomic) ASTextNode *titleNode;
+-(void) setAttributedTitle:(id) arg1 forState:(NSInteger) arg2;
+-(id) attributedTitleForState:(NSInteger) arg1;
 @end

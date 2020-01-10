@@ -33,6 +33,21 @@ id apolloCommentController;
 %end
 
 
+%hook RKLink
+%property(strong, nonatomic) NSString *undeleteAuthor;
+
+-(id) author{
+	
+	if ([self undeleteAuthor]){
+		return [self undeleteAuthor];
+	} else {
+		return %orig;
+	}
+}
+
+%end
+
+
 %hook MarkdownRenderer
 
 +(id) attributedStringFromHTML:(id)arg1 attributes:(id) arg2 compact:(BOOL) arg3{
@@ -123,7 +138,7 @@ id apolloCommentController;
 
 -(void) moreOptionsTappedWithSender:(id) arg1{
 	
-	id commentBody = [MSHookIvar<id>(self, "comment") body];
+	NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
 	
 	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 		shouldAddUndeleteCell = YES;
@@ -136,7 +151,7 @@ id apolloCommentController;
 
 -(void) longPressedWithGestureRecognizer:(id) arg1{
 	
-	id commentBody = [MSHookIvar<id>(self, "comment") body];
+	NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
 	
 	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
 		shouldAddUndeleteCell = YES;
@@ -150,7 +165,7 @@ id apolloCommentController;
 %new
 -(void) undeleteCellWasSelected{
 
-	id comment = MSHookIvar<id>(self, "comment");
+	RKComment *comment = MSHookIvar<RKComment *>(self, "comment");
 	
 	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 }
@@ -158,25 +173,22 @@ id apolloCommentController;
 %new
 -(void) completeUndeleteCommentAction:(NSDictionary *) data{
 	
-	id comment = MSHookIvar<id>(self, "comment");
+	RKComment *comment = MSHookIvar<RKComment *>(self, "comment");
 	id bodyNode = MSHookIvar<id>(self, "bodyNode");
 	id authorNode = MSHookIvar<id>(self, "authorNode");
-	id authorTextNode = [authorNode subnodes][0];
 	
 	NSString *author = data[@"author"];
 	NSString *body = data[@"body"];
 	
-	id prevAuthorAttributedString = [authorTextNode attributedString];
+	[comment setAuthor:author];
+	[comment setBody:body];
+	
+	NSAttributedString *prevAuthorAttributedString = [authorNode attributedTitleForState:UIControlStateNormal];
 	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
 	NSAttributedString *newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
 
-	[authorTextNode setAttributedText:newAuthorAttributedString];
-	[authorTextNode setAttributedString:newAuthorAttributedString];
-	
+	[authorNode setAttributedTitle:newAuthorAttributedString forState:UIControlStateNormal];
 	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
-	
-	[comment setAuthor:author];
-	[comment setBody:body];
 }
 
 %end
@@ -204,7 +216,7 @@ id apolloCommentController;
 %new
 -(void) undeleteCellWasSelected{
 	
-	id post = MSHookIvar<id>(self, "link");
+	RKLink *post = MSHookIvar<RKLink *>(self, "link");
 	
 	[%c(TFHelper) getUndeleteDataWithID:[[post fullName] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
 }
@@ -212,28 +224,26 @@ id apolloCommentController;
 %new
 -(void) completeUndeletePostAction:(NSDictionary *) data{
 	
+	RKLink *post = MSHookIvar<RKLink *>(self, "link");
+	
 	id headerCellNode = [self headerCellNode];
 	id bodyNode = MSHookIvar<id>(headerCellNode, "bodyNode");
 	id postInfoNode = MSHookIvar<id>(headerCellNode, "postInfoNode");
 	id authorNode = MSHookIvar<id>(postInfoNode, "authorButtonNode");
-	id authorTextNode = [authorNode subnodes][0];
 	
 	NSString *author = data[@"author"];
 	NSString *authorTextString = [NSString stringWithFormat:@"by %@", author];
 	NSString *body = data[@"body"];
 	
-	id post = MSHookIvar<id>(self, "link");
-	//MSHookIvar<NSString*>(post, "_author") = author; //Crashes when clicking on author name. You will have to search the author name to go find the profile.
-
-	id prevAuthorAttributedString = [authorTextNode attributedString];
+	[post setUndeleteAuthor:author];
+	[post setSelfText:body];
+	
+	NSAttributedString *prevAuthorAttributedString = [authorNode attributedTitleForState:UIControlStateNormal];
 	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
 	NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:authorTextString attributes:authorStringAttributes];
 
-	[authorTextNode setAttributedText:newAuthorAttributedString];
-	[authorTextNode setAttributedString:newAuthorAttributedString];
-	
+	[authorNode setAttributedTitle:newAuthorAttributedString forState:UIControlStateNormal];
 	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
-	[post setSelfText:body];
 }
 
 %end
