@@ -9,9 +9,16 @@ static CGFloat pushshiftRequestTimeoutValue;
 %group Apollo
 
 NSDictionary* apolloBodyAttributes = nil;
+BOOL shouldAddUndeleteCell = NO;
+id apolloCommentCell;
+id apolloCommentController;
 
-%hook ApolloApolloButtonNode
+%hook ApolloButtonNode
 %end
+
+%hook IconActionTableViewCell
+%end
+
 
 %hook RKComment
 
@@ -22,6 +29,7 @@ NSDictionary* apolloBodyAttributes = nil;
 -(BOOL) isModeratorRemoved{
 	return NO;
 }
+
 %end
 
 
@@ -33,60 +41,118 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	return %orig;
 }
+
 %end
 
 
-%hook ApolloCommentCellNode
-%property(strong,nonatomic) id undeleteButton;
+%hook ActionController
 
--(void) didLoad {
+-(id) tableView:(id) arg1 cellForRowAtIndexPath:(NSIndexPath *) arg2{
+	
+	if (shouldAddUndeleteCell){
+		if ([arg2 row] == [self tableView:arg1 numberOfRowsInSection:0] - 1){
+			
+			id undeleteCell = [[objc_getClass("Apollo.IconActionTableViewCell") alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"IconActionCell"];
+			NSArray *visibleCells = [arg1 visibleCells];
+			id prevCell = visibleCells[[visibleCells count] - 2];
+			
+			UIImageView *prevCellImageView = MSHookIvar<UIImageView *>(prevCell, "iconImageView");
+			CGSize prevImageSize = [[prevCellImageView image] size];
+			UIColor *menuColor = [prevCellImageView tintColor];
+			
+			UIImage *undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			CGFloat undeleteImageSizeValue = prevImageSize.width > prevImageSize.height ? prevImageSize.width : prevImageSize.height;
+			
+			UIGraphicsBeginImageContextWithOptions(CGSizeMake(undeleteImageSizeValue, undeleteImageSizeValue), NO, 0);
+			[undeleteImage drawInRect:CGRectMake(0, 0, undeleteImageSizeValue, undeleteImageSizeValue)];
+			undeleteImage = [UIGraphicsGetImageFromCurrentImageContext() imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+			UIGraphicsEndImageContext();
+			
+			UILabel *undeleteLabel = MSHookIvar<UILabel *>(undeleteCell, "actionTitleLabel");
+			UIImageView *undeleteImageView = MSHookIvar<UIImageView *>(undeleteCell, "iconImageView");
+			
+			undeleteLabel.text = @"TF Did That Say?";
+			undeleteLabel.textColor = menuColor;
+			
+			undeleteImageView.image = undeleteImage;
+			undeleteImageView.tintColor = menuColor;
+			
+			return undeleteCell;
+		}
+	}
+	
+	return %orig;	
+}
+
+-(void) tableView:(id) arg1 didSelectRowAtIndexPath:(NSIndexPath *)arg2{
+	
+	if (shouldAddUndeleteCell){
+		if ([arg2 row] == [self tableView:arg1 numberOfRowsInSection:0] - 1){
+
+			if (apolloCommentCell){
+				[apolloCommentCell undeleteCellWasSelected];
+			} else {
+				[apolloCommentController undeleteCellWasSelected];
+			}
+		}
+	} 
+	
 	%orig;
+}
+
+-(NSInteger) tableView:(id) arg1 numberOfRowsInSection:(NSInteger) arg2{
+	
+	if (shouldAddUndeleteCell){
+		return %orig + 1;
+	} else {
+		return %orig;
+	}
+}
+
+-(id) animationControllerForDismissedController:(id) arg1{
+	
+	shouldAddUndeleteCell = NO;
+	
+	return %orig;
+}
+
+%end
+
+
+%hook CommentCellNode
+
+-(void) moreOptionsTappedWithSender:(id) arg1{
 	
 	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
 	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
-	
-		CGFloat imageSize = 20.0f;
-
-		UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-		[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
-		undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
-		
-		UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-		[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
-
-		[[self view] addSubview:undeleteButton];
-		[self setUndeleteButton:undeleteButton];
-	
+		shouldAddUndeleteCell = YES;
+		apolloCommentCell = self;
+		apolloCommentController = nil;
 	}
+	
+	%orig;
 }
 
--(void) _layoutSublayouts{
-	%orig;
+-(void) longPressedWithGestureRecognizer:(id) arg1{
 	
-	if ([self undeleteButton]){
+	id commentBody = [MSHookIvar<id>(self, "comment") body];
 	
-		CGFloat imageSize = 20.0f;
-
-		id moreNode = MSHookIvar<id>(self, "moreOptionsNode");
-		id ageNode = MSHookIvar<id>(self, "ageNode");
-
-		CGRect nodeFrame = [moreNode frame];
-		CGFloat centerHeight = (nodeFrame.size.height + nodeFrame.origin.y * 2) / 2.0f;
-		CGFloat nodeSpacing =[ageNode frame].origin.x - nodeFrame.origin.x - nodeFrame.size.width;
-
-		[[self undeleteButton] setFrame:CGRectMake(nodeFrame.origin.x - imageSize - nodeSpacing, centerHeight - (imageSize / 2), imageSize, imageSize)];
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+		shouldAddUndeleteCell = YES;
+		apolloCommentCell = self;
+		apolloCommentController = nil;
 	}
+	
+	%orig;
 }
 
 %new
--(void) didTapUndeleteButton:(id) sender{
-	
-	[sender setEnabled:NO];
+-(void) undeleteCellWasSelected{
 
 	id comment = MSHookIvar<id>(self, "comment");
 	
-	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
+	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 }
 
 %new
@@ -111,92 +177,96 @@ NSDictionary* apolloBodyAttributes = nil;
 	
 	[comment setAuthor:author];
 	[comment setBody:body];
-
-	[data[@"sender"] setEnabled:YES];
 }
 
 %end
 
 
-%hook ApolloCommentsHeaderCellNode
-%property(strong, nonatomic) id undeleteButton;
+%hook CommentsViewController
+%property(strong, nonatomic) id headerCellNode; 
 
--(void) didLoad{
-	%orig;
+-(void) moreOptionsBarButtonItemTappedWithSender:(id) arg1{
 	
-	id post = MSHookIvar<id>(self, "link");
-	id postBody = [post selfText];
-
+	RKLink *post = MSHookIvar<RKLink *>(self, "link");
+	NSString *postBody = [post selfText];
+	
 	if ([post isSelfPost]){
 		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
-
-			CGFloat imageSize = 20.0f;
-
-			UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
-			[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
-			
-			UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
-			[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
-			undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
-
-			[[self view] addSubview:undeleteButton];
-			[self setUndeleteButton:undeleteButton];
+			shouldAddUndeleteCell = YES;
+			apolloCommentCell = nil;
+			apolloCommentController = self;
 		}
 	}
-}
-
--(void) _layoutSublayouts{
-	%orig;
 	
-	if ([self undeleteButton]){
-		
-		CGFloat imageSize = 20.0f;
-		
-		id postInfoNode = MSHookIvar<id>(self, "postInfoNode");
-		id ageNode = MSHookIvar<id>(postInfoNode, "ageButtonNode");
-
-		CGFloat centerHeight = [postInfoNode frame].origin.y + ([ageNode frame].size.height + [ageNode frame].origin.y * 2) / 2.0f;
-		CGFloat buttonXPos = [postInfoNode frame].origin.x + [postInfoNode frame].size.width - imageSize;
-		
-		[[self undeleteButton] setFrame:CGRectMake(buttonXPos, centerHeight - (imageSize / 2), imageSize, imageSize)];
-	}
+	%orig;
 }
 
 %new
--(void) didTapUndeleteButton:(id) sender{
-	
-	[sender setEnabled:NO];
+-(void) undeleteCellWasSelected{
 	
 	id post = MSHookIvar<id>(self, "link");
 	
-	[%c(TFHelper) getUndeleteDataWithID:[[post fullName] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
+	[%c(TFHelper) getUndeleteDataWithID:[[post fullName] componentsSeparatedByString:@"_"][1] isComment:NO timeout:pushshiftRequestTimeoutValue extraData:nil completionTarget:self completionSelector:@selector(completeUndeletePostAction:)];
 }
 
 %new
 -(void) completeUndeletePostAction:(NSDictionary *) data{
 	
-	id bodyNode = MSHookIvar<id>(self, "bodyNode");
-	id postInfoNode = MSHookIvar<id>(self, "postInfoNode");
+	id headerCellNode = [self headerCellNode];
+	id bodyNode = MSHookIvar<id>(headerCellNode, "bodyNode");
+	id postInfoNode = MSHookIvar<id>(headerCellNode, "postInfoNode");
 	id authorNode = MSHookIvar<id>(postInfoNode, "authorButtonNode");
 	id authorTextNode = [authorNode subnodes][0];
 	
 	NSString *author = data[@"author"];
+	NSString *authorTextString = [NSString stringWithFormat:@"by %@", author];
+	NSString *body = data[@"body"];
 	
-	//id post = MSHookIvar<id>(self, "link");
+	id post = MSHookIvar<id>(self, "link");
 	//MSHookIvar<NSString*>(post, "_author") = author; //Crashes when clicking on author name. You will have to search the author name to go find the profile.
-
-	author = [NSString stringWithFormat:@"by %@", author];
 
 	id prevAuthorAttributedString = [authorTextNode attributedString];
 	NSDictionary *authorStringAttributes = [prevAuthorAttributedString attributesAtIndex:0 longestEffectiveRange:nil inRange:NSMakeRange(0, [prevAuthorAttributedString length])];
-	NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
+	NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:authorTextString attributes:authorStringAttributes];
 
 	[authorTextNode setAttributedText:newAuthorAttributedString];
 	[authorTextNode setAttributedString:newAuthorAttributedString];
 	
-	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:data[@"body"] withAttributes:apolloBodyAttributes]];
+	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	[post setSelfText:body];
+}
+
+%end
+
+
+%hook CommentsHeaderCellNode
+
+-(void) didLoad{
+	%orig;
 	
-	[data[@"sender"] setEnabled:YES];
+	[[self closestViewController] setHeaderCellNode:self];
+}
+
+-(void) _layoutSublayouts{
+	%orig;
+	
+	[[self closestViewController] setHeaderCellNode:self];
+}
+
+-(void) longPressedWithGestureRecognizer:(id) arg1{
+	
+	RKLink *post = MSHookIvar<RKLink *>(self, "link");
+	NSString *postBody = [post selfText];
+	
+	if ([post isSelfPost]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
+			shouldAddUndeleteCell = YES;
+			apolloCommentCell = nil;
+			apolloCommentController = self;
+		}
+	}
+	
+	%orig;
 }
 
 %end
@@ -249,7 +319,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 			
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			%init(Apollo, ApolloCommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), ApolloCommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"));
+			%init(Apollo, CommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), CommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"), ActionController = objc_getClass("Apollo.ActionController"), IconActionTableViewCell = objc_getClass("Apollo.IconActionTableViewCell"), CommentsViewController = objc_getClass("Apollo.CommentsViewController"));
 		}
 	}
 }

@@ -2,42 +2,56 @@
 /* -- Comment Interfaces -- */
 
 @interface RKComment
-@property(assign,nonatomic) NSString* body;
-@property(assign,nonatomic) NSString* bodyHTML;
-@property(assign,nonatomic) NSString* author;
-@property(assign,nonatomic) NSString* fullName;
+@property(assign,nonatomic) NSString *body;
+@property(assign,nonatomic) NSString *bodyHTML;
+@property(assign,nonatomic) NSString *author;
+@property(assign,nonatomic) NSString *fullName;
 @end
 
-@interface ApolloCommentCellNode
+@interface CommentCellNode
 @property(assign,nonatomic)id view;
 -(BOOL) isSelected;
 -(void) _layoutSublayouts;
 -(void) didLoad;
 -(void) calculatedLayoutDidChange;
 
-//custom element
-@property(strong,nonatomic) id undeleteButton;
-
+//custom elements
+-(void) undeleteCellWasSelected;
 @end
 
 /* -- Post Interfaces -- */
 
 @interface RKLink
-@property(assign,nonatomic) NSString* selfText;
-@property(assign,nonatomic) NSString* author;
-@property(assign,nonatomic) NSString* fullName;
-
+@property(assign,nonatomic) NSString *selfText;
+@property(assign,nonatomic) NSString *author;
+@property(assign,nonatomic) NSString *fullName;
 -(BOOL) isSelfPost;
 @end
 
-@interface ApolloCommentsHeaderCellNode
+@interface CommentsHeaderCellNode
 @property(strong, nonatomic) id undeleteButton;
+@property(strong, nonatomic) id closestViewController;
+@end
+
+@interface CommentsViewController
+
+//custom elements
+@property(strong, nonatomic) id headerCellNode;
+-(void) undeleteCellWasSelected;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface MarkdownRenderer
 +(id) attributedStringFromMarkdown:(id) arg1 withAttributes:(id) arg2;
+@end
+
+@interface ActionController
+-(id) tableView:(id) arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2;
+-(NSInteger) tableView:(id) arg1 numberOfRowsInSection:(NSInteger) arg2;
+@end
+
+@interface IconActionTableViewCell : UITableViewCell
 @end
 
 /* -- ASyncDisplayKit Interfaces -- */
@@ -58,9 +72,6 @@
 @property(assign,nonatomic) id attributedText;
 @end
 
-@interface ApolloApolloButtonNode
-@property(assign,nonatomic) NSArray* subnodes;
+@interface ApolloButtonNode
+@property(assign,nonatomic) NSArray *subnodes;
 @end
-
-
-
