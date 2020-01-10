@@ -174,14 +174,6 @@
 			<key>showValue</key>
 			<true/>
 		</dict>
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>footerText</key>
-			<string>Enable or disable undelete option appearing only on deleted/removed comments and posts.</string>
-			<key>label</key>
-			<string>visibility</string>
-		</dict>
 	</array>
 	<key>title</key>
 	<string>TFDidThatSay?</string>
