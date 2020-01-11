@@ -150,6 +150,26 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
+			<string>In Apollo, show undelete option on the comment cell rather than in the action menu.</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<false/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>shouldApolloHaveButton</string>
+			<key>label</key>
+			<string>Show button in Apollo</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
 			<string>The number of seconds before the request to pushshift will timeout and return an error.</string>
 			<key>isStaticText</key>
 			<true/>

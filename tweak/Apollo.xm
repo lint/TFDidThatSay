@@ -5,6 +5,7 @@
 static BOOL isTFDeletedOnly;
 static BOOL isApolloEnabled;
 static CGFloat pushshiftRequestTimeoutValue;
+static BOOL shouldApolloHaveButton;
 
 %group Apollo
 
@@ -67,16 +68,18 @@ id apolloCommentController;
 	if (shouldAddUndeleteCell){
 		if ([arg2 row] == [self tableView:arg1 numberOfRowsInSection:0] - 1){
 			
-			id undeleteCell = [[objc_getClass("Apollo.IconActionTableViewCell") alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"IconActionCell"];
-			NSArray *visibleCells = [arg1 visibleCells];
-			id prevCell = visibleCells[[visibleCells count] - 2];
+			id undeleteCell = [arg1 dequeueReusableCellWithIdentifier:@"IconActionCell" forIndexPath:arg2];
+			id prevCell = [arg1 dequeueReusableCellWithIdentifier:@"IconActionCell"];
 			
 			UIImageView *prevCellImageView = MSHookIvar<UIImageView *>(prevCell, "iconImageView");
 			CGSize prevImageSize = [[prevCellImageView image] size];
-			UIColor *menuColor = [prevCellImageView tintColor];
 			
 			UIImage *undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 			CGFloat undeleteImageSizeValue = prevImageSize.width > prevImageSize.height ? prevImageSize.width : prevImageSize.height;
+			
+			if (undeleteImageSizeValue == 0){
+				undeleteImageSizeValue = 25;
+			}
 			
 			UIGraphicsBeginImageContextWithOptions(CGSizeMake(undeleteImageSizeValue, undeleteImageSizeValue), NO, 0);
 			[undeleteImage drawInRect:CGRectMake(0, 0, undeleteImageSizeValue, undeleteImageSizeValue)];
@@ -87,10 +90,7 @@ id apolloCommentController;
 			UIImageView *undeleteImageView = MSHookIvar<UIImageView *>(undeleteCell, "iconImageView");
 			
 			undeleteLabel.text = @"TF Did That Say?";
-			undeleteLabel.textColor = menuColor;
-			
 			undeleteImageView.image = undeleteImage;
-			undeleteImageView.tintColor = menuColor;
 			
 			return undeleteCell;
 		}
@@ -135,15 +135,19 @@ id apolloCommentController;
 
 
 %hook CommentCellNode
+%property(strong,nonatomic) UIButton *undeleteButton;
 
 -(void) moreOptionsTappedWithSender:(id) arg1{
 	
-	NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
-	
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
-		shouldAddUndeleteCell = YES;
-		apolloCommentCell = self;
-		apolloCommentController = nil;
+	if (!shouldApolloHaveButton){
+		
+		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+			shouldAddUndeleteCell = YES;
+			apolloCommentCell = self;
+			apolloCommentController = nil;
+		}		
 	}
 	
 	%orig;
@@ -151,15 +155,72 @@ id apolloCommentController;
 
 -(void) longPressedWithGestureRecognizer:(id) arg1{
 	
-	NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
-	
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
-		shouldAddUndeleteCell = YES;
-		apolloCommentCell = self;
-		apolloCommentController = nil;
+	if (!shouldApolloHaveButton){
+		
+		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+			shouldAddUndeleteCell = YES;
+			apolloCommentCell = self;
+			apolloCommentController = nil;
+		}
 	}
 	
 	%orig;
+}
+
+-(void) didLoad {
+	%orig;
+	
+	if (shouldApolloHaveButton){
+	
+		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+		
+			CGFloat imageSize = 20.0f;
+
+			UIButton *undeleteButton = [UIButton buttonWithType:UIButtonTypeCustom];
+			[undeleteButton addTarget:self action:@selector(didTapUndeleteButton:) forControlEvents:UIControlEventTouchUpInside];
+			undeleteButton.frame = CGRectMake(0, 0, imageSize, imageSize);
+			
+			UIImage* undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			[undeleteButton setImage:undeleteImage forState:UIControlStateNormal];
+
+			[[self view] addSubview:undeleteButton];
+			[self setUndeleteButton:undeleteButton];
+		}
+	}
+}
+
+-(void) _layoutSublayouts{
+	%orig;
+	
+	if (shouldApolloHaveButton){
+		if ([self undeleteButton]){
+		
+			CGFloat imageSize = 20.0f;
+
+			id moreNode = MSHookIvar<id>(self, "moreOptionsNode");
+			id ageNode = MSHookIvar<id>(self, "ageNode");
+
+			CGRect nodeFrame = [moreNode frame];
+			CGFloat centerHeight = (nodeFrame.size.height + nodeFrame.origin.y * 2) / 2.0f;
+			CGFloat nodeSpacing = [ageNode frame].origin.x - nodeFrame.origin.x - nodeFrame.size.width;
+
+			[[self undeleteButton] setFrame:CGRectMake(nodeFrame.origin.x - imageSize - nodeSpacing, centerHeight - (imageSize / 2), imageSize, imageSize)];
+		}
+	}
+}
+
+%new
+-(void) didTapUndeleteButton:(id) sender{
+	
+	[sender setEnabled:NO];
+
+	id comment = MSHookIvar<id>(self, "comment");
+	
+	[%c(TFHelper) getUndeleteDataWithID:[[comment fullName] componentsSeparatedByString:@"_"][1] isComment:YES timeout:pushshiftRequestTimeoutValue extraData:@{@"sender" : sender} completionTarget:self completionSelector:@selector(completeUndeleteCommentAction:)];
 }
 
 %new
@@ -189,6 +250,10 @@ id apolloCommentController;
 
 	[authorNode setAttributedTitle:newAuthorAttributedString forState:UIControlStateNormal];
 	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	
+	if ([data objectForKey:@"sender"]) {
+		[data[@"sender"] setEnabled:YES];
+	}
 }
 
 %end
@@ -306,11 +371,18 @@ static void loadPrefs(){
 		} else {
 			pushshiftRequestTimeoutValue = 10;
 		}
+		
+		if ([prefs objectForKey:@"shouldApolloHaveButton"] != nil){
+			shouldApolloHaveButton = [[prefs objectForKey:@"shouldApolloHaveButton"] boolValue];
+		} else {
+			shouldApolloHaveButton = NO;
+		}
 
 	} else {
 		isApolloEnabled = YES;
 		isTFDeletedOnly = YES;
 		pushshiftRequestTimeoutValue = 10;
+		shouldApolloHaveButton = NO;
 	}	
 }
 

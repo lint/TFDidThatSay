@@ -16,6 +16,7 @@
 -(void) calculatedLayoutDidChange;
 
 //custom elements
+@property(strong,nonatomic) UIButton *undeleteButton;
 -(void) undeleteCellWasSelected;
 @end
 
