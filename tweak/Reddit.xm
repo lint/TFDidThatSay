@@ -6,8 +6,8 @@ static BOOL isRedditEnabled;
 static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
-int firstVersionPart = 4;
-int secondVersionPart = 49;
+int firstVersionPart = 2020;
+int secondVersionPart = 0;
 
 %group Reddit_v4_current
 
@@ -100,7 +100,7 @@ int secondVersionPart = 49;
 	id isNightMode;
 	id textColor;
 	
-	if (secondVersionPart >= 45){
+	if (firstVersionPart == 2020){
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -111,30 +111,44 @@ int secondVersionPart = 49;
 		}
 		
 		[themeManager release];
-		
-	} else if (secondVersionPart >= 37){
-		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-		
-		if (isNightMode) {
-			textColor = [[themeManager nightTheme] bodyTextColor];
-		} else{
-			textColor = [[themeManager dayTheme] bodyTextColor];
-		}
-		
-		[themeManager release];
-		
 	} else {
-		themeManager  = [%c(ThemeManager) sharedManager];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-		
-		if (isNightMode) {
-			textColor = [[themeManager nightTheme] bodyTextColor];
-		} else{
-			textColor = [[themeManager dayTheme] bodyTextColor];
+	
+		if (secondVersionPart >= 45){
+			themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager darkTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager lightTheme] bodyTextColor];
+			}
+			
+			[themeManager release];
+			
+		} else if (secondVersionPart >= 37){
+			themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager nightTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager dayTheme] bodyTextColor];
+			}
+			
+			[themeManager release];
+			
+		} else {
+			themeManager  = [%c(ThemeManager) sharedManager];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager nightTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager dayTheme] bodyTextColor];
+			}
 		}
 	}
-	
+		
 	bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
 	[bodyMutableAttributedText beginEditing];
@@ -227,7 +241,7 @@ int secondVersionPart = 49;
 	id isNightMode;
 	id textColor;
 	
-	if (secondVersionPart >= 45){
+	if (firstVersionPart == 2020){
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
@@ -238,30 +252,44 @@ int secondVersionPart = 49;
 		}
 		
 		[themeManager release];
-		
-	} else if (secondVersionPart >= 37){
-		themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
-		
-		if (isNightMode) {
-			textColor = [[themeManager nightTheme] bodyTextColor];
-		} else{
-			textColor = [[themeManager dayTheme] bodyTextColor];
-		}
-		
-		[themeManager release];
-		
 	} else {
-		themeManager  = [%c(ThemeManager) sharedManager];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 		
-		if (isNightMode) {
-			textColor = [[themeManager nightTheme] bodyTextColor];
-		} else{
-			textColor = [[themeManager dayTheme] bodyTextColor];
-		}
-	}			
-
+		if (secondVersionPart >= 45){
+			themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager darkTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager lightTheme] bodyTextColor];
+			}
+			
+			[themeManager release];
+			
+		} else if (secondVersionPart >= 37){
+			themeManager  = [[%c(ThemeManager) alloc] initWithTraitCollection:nil appSettings:[%c(AppSettings) sharedSettings]];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager nightTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager dayTheme] bodyTextColor];
+			}
+			
+			[themeManager release];
+			
+		} else {
+			themeManager  = [%c(ThemeManager) sharedManager];
+			isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+			
+			if (isNightMode) {
+				textColor = [[themeManager nightTheme] bodyTextColor];
+			} else{
+				textColor = [[themeManager dayTheme] bodyTextColor];
+			}
+		}			
+	}
+	
 	NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
 	[bodyMutableAttributedText beginEditing];
@@ -276,13 +304,17 @@ int secondVersionPart = 49;
 	[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
 	[post setPreviewFeedPostTextString:bodyMutableAttributedText];
 	
-	if (secondVersionPart >= 44){
+	if (firstVersionPart == 2020){
 		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
-	} else if (secondVersionPart >= 38) {
-		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
 	} else {
-		[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
-		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] titleNode] configureNodes];
+		if (secondVersionPart >= 44){
+			[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
+		} else if (secondVersionPart >= 38) {
+			[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
+		} else {
+			[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] configureSelfTextNode];
+			[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] titleNode] configureNodes];
+		}
 	}
 	
 	[bodyMutableAttributedText release];
@@ -626,8 +658,8 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 		secondVersionPart = [redditVersion[1] intValue];
 	}
 	@catch (NSException *exc){
-		firstVersionPart = 4;
-		secondVersionPart = 49;
+		firstVersionPart = 2020;
+		secondVersionPart = 0;
 	}
 
 	if ([processName isEqualToString:@"Reddit"]){
@@ -635,8 +667,8 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorDeliverImmediately);
 			
-			if (firstVersionPart == 4){
-				if (secondVersionPart <= 32){
+			if (firstVersionPart == 4 || firstVersionPart == 2020){
+				if (secondVersionPart <= 32 && firstVersionPart != 2020){
 					%init(Reddit_v4_ios10);
 				} else{
 					%init(Reddit_v4_current);
