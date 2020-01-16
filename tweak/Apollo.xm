@@ -74,7 +74,19 @@ id apolloCommentController;
 			UIImageView *prevCellImageView = MSHookIvar<UIImageView *>(prevCell, "iconImageView");
 			CGSize prevImageSize = [[prevCellImageView image] size];
 			
-			UIImage *undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			UIImage *undeleteImage; 
+			
+			if (@available(iOS 13.0, *)){
+				
+				undeleteImage = [UIImage systemImageNamed:@"eye"];
+				
+				if (!undeleteImage){
+					undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+				}
+			} else {
+				undeleteImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
+			}
+			
 			CGFloat undeleteImageSizeValue = prevImageSize.width > prevImageSize.height ? prevImageSize.width : prevImageSize.height;
 			
 			if (undeleteImageSizeValue == 0){
