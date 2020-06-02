@@ -3,7 +3,7 @@
 /* -- Comment Interfaces -- */
 
 @interface Comment
-//v4 
+//v4
 @property(strong,nonatomic) id pk;
 @property(strong, nonatomic) NSString *bodyText;
 @property(strong, nonatomic) NSString *author;
@@ -16,22 +16,22 @@
 
 @interface CommentsViewController : NSObject
 @property(strong,nonatomic) id postData;
--(void) reloadCommentsWithNewCommentsHighlight:(BOOL) arg1 autoScroll:(BOOL) arg2 animated:(BOOL) arg3;
--(void) reloadCommentsSection:(BOOL) arg1;
--(void) reloadPostSection:(BOOL) arg1;
--(void) feedPostViewDidUpdatePost:(id) arg1 shouldReloadFeed:(BOOL) arg2;
--(void) updateFloatingViews;
+- (void)reloadCommentsWithNewCommentsHighlight:(BOOL)arg1 autoScroll:(BOOL)arg2 animated:(BOOL)arg3;
+- (void)reloadCommentsSection:(BOOL)arg1;
+- (void)reloadPostSection:(BOOL)arg1;
+- (void)feedPostViewDidUpdatePost:(id)arg1 shouldReloadFeed:(BOOL)arg2;
+- (void)updateFloatingViews;
 
 //custom elements
--(void) updateComments;
--(void) updatePostText;
+- (void)updateComments;
+- (void)updatePostText;
 @end
 
 @interface CommentActionSheetViewController : UIViewController
 @property(strong,nonatomic) Comment *comment;
 @property(strong,nonatomic) id commentTreeNode;
 @property(strong,nonatomic) CommentsViewController *commentActionSheetDelegate;
--(id)animationControllerForDismissedController:(id) arg1;
+- (id)animationControllerForDismissedController:(id)arg1;
 @end
 
 
@@ -54,7 +54,7 @@
 
 @interface CommentTreeHeaderNode
 @property(strong,nonatomic) id commentTreeNode;
--(void) updateContentViewsForData:(id)arg1;
+- (void)updateContentViewsForData:(id)arg1;
 @end
 
 @interface CommentTreeCommandBarNode
@@ -68,7 +68,7 @@
 @interface CommentTreeHeaderView
 @property(strong,nonatomic) id commentTreeNode;
 
--(void) updateContentViewsForData:(id) arg1;
+- (void)updateContentViewsForData:(id)arg1;
 @end
 
 /* -- Post Interfaces -- */
@@ -85,7 +85,7 @@
 
 @interface PostDetailViewController
 @property(strong,nonatomic) id selfTextNode;
--(void) configureSelfTextNode;
+- (void)configureSelfTextNode;
 
 //custom elements
 @property(strong,nonatomic) id feedPostTextWithThumbnailNode;
@@ -111,7 +111,7 @@
 
 @interface FeedPostTitleNode
 @property(strong,nonatomic) id delegate;
--(void) configureNodes;
+- (void)configureNodes;
 @end
 
 @interface FeedPostDetailDelegator
@@ -119,7 +119,7 @@
 @end
 
 @interface FeedPostContentNode
--(void) configureSelfTextNode;
+- (void)configureSelfTextNode;
 @end
 
 /* -- Other Interfaces -- */
@@ -130,14 +130,14 @@
 
 @interface RUIActionSheetItem : NSObject
 @property(strong,nonatomic) id leftIconImage;
--(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
+- (id)initWithLeftIconImage:(id)arg1 text:(id)arg2 identifier:(id)arg3 context:(id)arg4;
 @end
 
 
 @interface ActionSheetItem : NSObject
 // <= 4.17
 @property(strong,nonatomic) id leftIconImage;
--(id) initWithLeftIconImage:(id) arg1 text:(id) arg2 identifier:(id) arg3 context:(id) arg4;
+- (id) initWithLeftIconImage:(id)arg1 text:(id)arg2 identifier:(id)arg3 context:(id)arg4;
 @end
 
 @interface RUITheme
@@ -145,36 +145,37 @@
 @end
 
 @interface NSAttributedStringMarkdownParser
-+(id) currentConfig;
-+(id) attributedStringUsingCurrentConfig:(id) arg1;
--(id) attributedStringFromMarkdownString:(id) arg1;
--(id) initWithConfig:(id) arg1;
++ (id)currentConfig;
++ (id)attributedStringUsingCurrentConfig:(id)arg1;
+- (id)attributedStringFromMarkdownString:(id)arg1;
+- (id)initWithConfig:(id)arg1;
 @end
 
 @interface ThemeManager
 
-+(id) sharedManager;
++ (id)sharedManager;
 
 // >= 4.45.0
 @property(strong,nonatomic) id darkTheme;
 @property(strong,nonatomic) id lightTheme;
--(id) initWithAppSettings:(id) arg1;
+- (id)initWithAppSettings:(id)arg1;
 
 // < 4.45.0
 @property(strong,nonatomic) id dayTheme;
 @property(strong,nonatomic) id nightTheme;
--(id) initWithTraitCollection:(id) arg1 appSettings:(id) arg2;
+- (id)initWithTraitCollection:(id)arg1 appSettings:(id)arg2;
 
 @end
 
 @interface AppSettings
-+(id) sharedSettings;
++ (id)sharedSettings;
 @end
 
 @interface AccountManager
 @property(assign,nonatomic) id defaults;
-+(id) sharedManager;
++ (id)sharedManager;
 @end
+
 
 /* ---- Reddit v3 ---- */
 
@@ -182,28 +183,28 @@
 /* -- Comment Interfaces -- */
 
 @interface CommentCell : UIView
--(id) delegate;
--(id) comment;
--(id) commentView;
+- (id)delegate;
+- (id)comment;
+- (id)commentView;
 @end
 
 @interface CommentView
--(void) configureSubviews;
--(void) layoutSubviews;
--(id) commandView;
--(id) comment;
--(id) delegate;
+- (void)configureSubviews;
+- (void)layoutSubviews;
+- (id)commandView;
+- (id)comment;
+- (id)delegate;
 @end
 
 @interface CommentCommandView
 @property (strong, nonatomic) id undeleteButton;
--(id)overflowButton;
--(id) comment;
--(id) delegate;
+- (id)overflowButton;
+- (id)comment;
+- (id)delegate;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface MarkDownParser
-+(id)attributedStringFromMarkdownString:(id)arg1;
++ (id)attributedStringFromMarkdownString:(id)arg1;
 @end

@@ -29,7 +29,7 @@
 @end
 
 @interface CommentsViewController
--(void) respondToStyleChange;
+- (void)respondToStyleChange;
 @end
 
 @interface CommentPostHeaderNode
@@ -47,15 +47,15 @@
 @property(assign, nonatomic) BOOL isPostHeader;
 @property(strong, nonatomic) id delegate;
 @property(strong, nonatomic) id node;
--(void) addButton:(id) arg1;
+- (void)addButton:(id)arg1;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface MarkupEngine
-+(id) markDownHTML:(id) arg1 forSubreddit:(id) arg2;
++ (id)markDownHTML:(id)arg1 forSubreddit:(id)arg2;
 @end
 
 @interface Resources
-+(BOOL) isNight;
++ (BOOL)isNight;
 @end

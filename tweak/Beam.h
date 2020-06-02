@@ -14,7 +14,7 @@
 @property(strong, nonatomic) id authorButton;
 @property(assign, nonatomic) BOOL isCollapsed;
 @property(assign, nonatomic) BOOL commentDidChange;
--(void) reloadContents;
+- (void)reloadContents;
 
 //custom elements
 @property(strong, nonatomic) UIButton *undeleteButton;
@@ -48,7 +48,7 @@
 @end
 
 @interface PostSelfTextPartCell
--(id) _viewControllerForAncestor;
+- (id)_viewControllerForAncestor;
 @end
 
 @interface PostMetadataView

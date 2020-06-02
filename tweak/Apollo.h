@@ -17,14 +17,14 @@
 
 @interface CommentCellNode
 @property(assign,nonatomic)id view;
--(BOOL) isSelected;
--(void) _layoutSublayouts;
--(void) didLoad;
--(void) calculatedLayoutDidChange;
+- (BOOL)isSelected;
+- (void)_layoutSublayouts;
+- (void)didLoad;
+- (void)calculatedLayoutDidChange;
 
 //custom elements
 @property(strong,nonatomic) UIButton *undeleteButton;
--(void) undeleteCellWasSelected;
+- (void)undeleteCellWasSelected;
 @end
 
 /* -- Post Interfaces -- */
@@ -33,7 +33,7 @@
 @property(assign,nonatomic) NSString *selfText;
 @property(assign,nonatomic) NSString *author;
 @property(assign,nonatomic) NSString *fullName;
--(BOOL) isSelfPost;
+- (BOOL)isSelfPost;
 
 //custom elements
 @property(strong, nonatomic) NSString *undeleteAuthor;
@@ -43,7 +43,7 @@
 @property(assign,nonatomic) NSString *selfText;
 @property(assign,nonatomic) NSString *author;
 @property(assign,nonatomic) NSString *fullName;
--(BOOL) isSelfPost;
+- (BOOL)isSelfPost;
 
 //custom elements
 @property(strong, nonatomic) NSString *undeleteAuthor;
@@ -58,18 +58,18 @@
 
 //custom elements
 @property(strong, nonatomic) id headerCellNode;
--(void) undeleteCellWasSelected;
+- (void)undeleteCellWasSelected;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface MarkdownRenderer
-+(id) attributedStringFromMarkdown:(id) arg1 withAttributes:(id) arg2;
++ (id)attributedStringFromMarkdown:(id)arg1 withAttributes:(id)arg2;
 @end
 
 @interface ActionController
--(id) tableView:(id) arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2;
--(NSInteger) tableView:(id) arg1 numberOfRowsInSection:(NSInteger) arg2;
+- (id)tableView:(id)arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2;
+- (NSInteger)tableView:(id)arg1 numberOfRowsInSection:(NSInteger)arg2;
 @end
 
 @interface UIImage (ios13)
@@ -88,7 +88,7 @@
 @property(assign,nonatomic)id image;
 @property(assign,nonatomic) CGRect frame;
 @property(assign,nonatomic) id view;
--(CGRect)_frameInWindow;
+- (CGRect)_frameInWindow;
 @end
 
 @interface ASTextNode
@@ -99,6 +99,6 @@
 
 @interface ApolloButtonNode
 @property(assign,nonatomic) ASTextNode *titleNode;
--(void) setAttributedTitle:(id) arg1 forState:(NSInteger) arg2;
--(id) attributedTitleForState:(NSInteger) arg1;
+- (void) setAttributedTitle:(id)arg1 forState:(NSInteger)arg2;
+- (id) attributedTitleForState:(NSInteger)arg1;
 @end

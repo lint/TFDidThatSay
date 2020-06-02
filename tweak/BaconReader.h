@@ -1,7 +1,7 @@
 
 /* -- Votable Interfaces -- */
 
-@interface BRVotable 
+@interface BRVotable
 @property(strong, nonatomic) NSString *serverID;
 @property(strong, nonatomic) NSAttributedString *attributedDescriptionString;
 @property(assign, nonatomic) CGSize cellSize;
@@ -39,7 +39,7 @@
 
 @interface  StoryDetailView
 @property(strong, nonatomic) UITableView *tableView;
--(void) refreshTouched;
+- (void)refreshTouched;
 @end
 
 @interface StoryDetailViewController
@@ -47,13 +47,13 @@
 @property(strong, nonatomic) id detailPage;
 
 //custom elements
--(void) handleUndeleteCommentAction;
--(void) handleUndeletePostAction;
+- (void)handleUndeleteCommentAction;
+- (void)handleUndeletePostAction;
 @end
 
 /* -- Other Interfaces -- */
 
 @interface BRUtils
-+(id) attributedDescriptionForComment:(id) arg1;
-+(id) createAttributedStringFromHTML:(id) arg1 options:(id) arg2;
++ (id)attributedDescriptionForComment:(id)arg1;
++ (id)createAttributedStringFromHTML:(id)arg1 options:(id)arg2;
 @end

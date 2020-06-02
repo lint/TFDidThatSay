@@ -3,22 +3,22 @@
 
 @implementation TFHelper
 
-+(void) getUndeleteDataWithID:(NSString *) ident isComment:(BOOL) isComment timeout:(CGFloat) timeout extraData:(NSDictionary *) extra completionTarget:(id) target completionSelector:(SEL) sel{
++ (void)getUndeleteDataWithID:(NSString *)ident isComment:(BOOL)isComment timeout:(CGFloat)timeout extraData:(NSDictionary *)extra completionTarget:(id)target completionSelector:(SEL)sel {
 
 	NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
 	NSOperationQueue *queue = [[NSOperationQueue alloc] init];
-	
+
 	if (isComment){
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/comment/?ids=%@&fields=author,body", ident]]];
 	} else {
 		[request setURL:[NSURL URLWithString:[NSString stringWithFormat:@"https://api.pushshift.io/reddit/search/submission/?ids=%@&fields=author,selftext", ident]]];
 	}
-	
+
 	[request setHTTPMethod:@"GET"];
 	[request setTimeoutInterval:timeout];
 
 	[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-	
+
 		NSString *author = @"[author]";
 		NSString *body = @"[body]";
 
@@ -36,19 +36,19 @@
 		} else if (error != nil || data == nil){
 			body = [NSString stringWithFormat:@"[an error occured while attempting to contact pushshift api (%@)]", [error localizedDescription]];
 		}
-		
+
 		NSMutableDictionary *result =  [@{@"author" : author, @"body" : body} mutableCopy];
-		
+
 		if (extra){
 			[result addEntriesFromDictionary:extra];
 		}
-		
+
 		[target performSelectorOnMainThread:sel withObject:result waitUntilDone:NO];
 	}];
 }
 
 +(BOOL) shouldShowUndeleteButtonWithInfo:(NSString *) content isDeletedOnly:(BOOL) isDeletedOnly{
-	
+
 	if (!isDeletedOnly){
 		return YES;
 	} else {
@@ -58,7 +58,7 @@
 			return YES;
 		}
 	}
-	
+
 	return NO;
 }
 
