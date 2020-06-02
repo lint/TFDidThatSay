@@ -8,9 +8,31 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>footerText</key>
-			<string>To enable/disable, restart the app.</string>
+			<string>Fully enable/disable the tweak.</string>
 			<key>label</key>
 			<string>Enabled</string>
+		</dict>
+		<dict>
+			<key>PostNotification</key>
+			<string>com.lint.undelete.prefs.changed</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.lint.undelete.prefs</string>
+			<key>key</key>
+			<string>isEnabled</string>
+			<key>label</key>
+			<string>Enabled</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Enabled Applications</string>
+			<key>footerText</key>
+			<string>To enable/disable, restart the app.</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -25,6 +47,10 @@
 			<string>isAlienBlueEnabled</string>
 			<key>label</key>
 			<string>Enable Alien Blue</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/AlienBlue.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -39,6 +65,10 @@
 			<string>isAntennaEnabled</string>
 			<key>label</key>
 			<string>Enable Antenna</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Antenna.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -53,6 +83,10 @@
 			<string>isApolloEnabled</string>
 			<key>label</key>
 			<string>Enable Apollo</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Apollo.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -67,6 +101,10 @@
 			<string>isBaconReaderEnabled</string>
 			<key>label</key>
 			<string>Enable BaconReader</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/BaconReader.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -81,6 +119,10 @@
 			<string>isBeamEnabled</string>
 			<key>label</key>
 			<string>Enable Beam</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Beam.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -95,6 +137,10 @@
 			<string>isNarwhalEnabled</string>
 			<key>label</key>
 			<string>Enable Narwhal</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Narwhal.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -109,6 +155,10 @@
 			<string>isRedditEnabled</string>
 			<key>label</key>
 			<string>Enable Reddit</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Reddit.png</string>
 		</dict>
 		<dict>
 			<key>PostNotification</key>
@@ -123,6 +173,10 @@
 			<string>isSlideEnabled</string>
 			<key>label</key>
 			<string>Enable Slide</string>
+			<key>hasIcon</key>
+			<true/>
+			<key>icon</key>
+			<string>app_icons/Slide.png</string>
 		</dict>
 		<dict>
 			<key>cell</key>
