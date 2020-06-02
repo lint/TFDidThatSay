@@ -8,6 +8,13 @@
 @property(assign,nonatomic) NSString *fullName;
 @end
 
+@interface RDKComment
+@property(assign,nonatomic) NSString *body;
+@property(assign,nonatomic) NSString *bodyHTML;
+@property(assign,nonatomic) NSString *author;
+@property(assign,nonatomic) NSString *fullName;
+@end
+
 @interface CommentCellNode
 @property(assign,nonatomic)id view;
 -(BOOL) isSelected;
@@ -23,6 +30,16 @@
 /* -- Post Interfaces -- */
 
 @interface RKLink
+@property(assign,nonatomic) NSString *selfText;
+@property(assign,nonatomic) NSString *author;
+@property(assign,nonatomic) NSString *fullName;
+-(BOOL) isSelfPost;
+
+//custom elements
+@property(strong, nonatomic) NSString *undeleteAuthor;
+@end
+
+@interface RDKLink
 @property(assign,nonatomic) NSString *selfText;
 @property(assign,nonatomic) NSString *author;
 @property(assign,nonatomic) NSString *fullName;
@@ -53,6 +70,10 @@
 @interface ActionController
 -(id) tableView:(id) arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2;
 -(NSInteger) tableView:(id) arg1 numberOfRowsInSection:(NSInteger) arg2;
+@end
+
+@interface UIImage (ios13)
++ (id)systemImageNamed:(NSString *)arg1;
 @end
 
 @interface IconActionTableViewCell : UITableViewCell

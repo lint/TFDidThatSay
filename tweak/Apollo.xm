@@ -23,11 +23,24 @@ id apolloCommentController;
 
 %hook RKComment
 
--(BOOL) isDeleted{
+- (BOOL)isDeleted {
 	return NO;
 }
 
--(BOOL) isModeratorRemoved{
+- (BOOL)isModeratorRemoved {
+	return NO;
+}
+
+%end
+
+//1.8+, unsure why this is all I needed to add for 1.8 support, the rest of this still works even w/o changing RKComment and RKLink references
+%hook RDKComment
+
+- (BOOL)isDeleted {
+	return NO;
+}
+
+- (BOOL)isModeratorRemoved {
 	return NO;
 }
 
@@ -37,13 +50,18 @@ id apolloCommentController;
 %hook RKLink
 %property(strong, nonatomic) NSString *undeleteAuthor;
 
--(id) author{
-	
-	if ([self undeleteAuthor]){
-		return [self undeleteAuthor];
-	} else {
-		return %orig;
-	}
+- (id)author {
+	return [self undeleteAuthor] ? [self undeleteAuthor] : %orig;
+}
+
+%end
+
+
+%hook RDKLink
+%property(strong, nonatomic) NSString *undeleteAuthor;
+
+- (id)author {
+	return [self undeleteAuthor] ? [self undeleteAuthor] : %orig;
 }
 
 %end
