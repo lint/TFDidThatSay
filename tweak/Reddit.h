@@ -4,7 +4,7 @@
 
 @interface Comment
 //v4
-@property(strong,nonatomic) id pk;
+@property(strong, nonatomic) id pk;
 @property(strong, nonatomic) NSString *bodyText;
 @property(strong, nonatomic) NSString *author;
 @property(strong, nonatomic) id bodyRichTextAttributed;
@@ -15,7 +15,7 @@
 @end
 
 @interface CommentsViewController : NSObject
-@property(strong,nonatomic) id postData;
+@property(strong, nonatomic) id postData;
 - (void)reloadCommentsWithNewCommentsHighlight:(BOOL)arg1 autoScroll:(BOOL)arg2 animated:(BOOL)arg3;
 - (void)reloadCommentsSection:(BOOL)arg1;
 - (void)reloadPostSection:(BOOL)arg1;
@@ -28,9 +28,9 @@
 @end
 
 @interface CommentActionSheetViewController : UIViewController
-@property(strong,nonatomic) Comment *comment;
-@property(strong,nonatomic) id commentTreeNode;
-@property(strong,nonatomic) CommentsViewController *commentActionSheetDelegate;
+@property(strong, nonatomic) Comment *comment;
+@property(strong, nonatomic) id commentTreeNode;
+@property(strong, nonatomic) CommentsViewController *commentActionSheetDelegate;
 - (id)animationControllerForDismissedController:(id)arg1;
 @end
 
@@ -41,32 +41,32 @@
 /* -- Comment Interfaces -- */
 
 @interface CommentTreeNode
-@property(strong,nonatomic) Comment *comment;
+@property(strong, nonatomic) Comment *comment;
 
 //custom elements
-@property(strong,nonatomic) id commentTreeHeaderNode;
-@property(strong,nonatomic) id commentTreeCommandBarNode;
+@property(strong, nonatomic) id commentTreeHeaderNode;
+@property(strong, nonatomic) id commentTreeCommandBarNode;
 @end
 
 @interface CommentTreeDisplayNode
-@property(strong,nonatomic) id commentNode;
+@property(strong, nonatomic) id commentNode;
 @end
 
 @interface CommentTreeHeaderNode
-@property(strong,nonatomic) id commentTreeNode;
+@property(strong, nonatomic) id commentTreeNode;
 - (void)updateContentViewsForData:(id)arg1;
 @end
 
 @interface CommentTreeCommandBarNode
-@property(strong,nonatomic) id commentTreeNode;
-@property(strong,nonatomic) id delegate;
-@property(strong,nonatomic) UIView* view;
-@property(strong,nonatomic) id overflowButtonNode;
-@property(assign,nonatomic) CGRect frame;
+@property(strong, nonatomic) id commentTreeNode;
+@property(strong, nonatomic) id delegate;
+@property(strong, nonatomic) UIView *view;
+@property(strong, nonatomic) id overflowButtonNode;
+@property(assign, nonatomic) CGRect frame;
 @end
 
 @interface CommentTreeHeaderView
-@property(strong,nonatomic) id commentTreeNode;
+@property(strong, nonatomic) id commentTreeNode;
 
 - (void)updateContentViewsForData:(id)arg1;
 @end
@@ -74,48 +74,48 @@
 /* -- Post Interfaces -- */
 
 @interface Post
-@property(strong,nonatomic) NSString *author;
-@property(strong,nonatomic) NSString *selfText;
-@property(strong,nonatomic) id selfTextAttributed;
-@property(strong,nonatomic) id selfPostRichTextAttributed;
-@property(strong,nonatomic) id previewFeedPostTextString;
-@property(assign,nonatomic) BOOL isSelfPost;
-@property(strong,nonatomic) NSString *pk;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *selfText;
+@property(strong, nonatomic) id selfTextAttributed;
+@property(strong, nonatomic) id selfPostRichTextAttributed;
+@property(strong, nonatomic) id previewFeedPostTextString;
+@property(assign, nonatomic) BOOL isSelfPost;
+@property(strong, nonatomic) NSString *pk;
 @end
 
 @interface PostDetailViewController
-@property(strong,nonatomic) id selfTextNode;
+@property(strong, nonatomic) id selfTextNode;
 - (void)configureSelfTextNode;
 
 //custom elements
-@property(strong,nonatomic) id feedPostTextWithThumbnailNode;
-@property(strong,nonatomic) id feedPostDetailCellNode;
+@property(strong, nonatomic) id feedPostTextWithThumbnailNode;
+@property(strong, nonatomic) id feedPostDetailCellNode;
 @end
 
 @interface PostActionSheetViewController : UIViewController
-@property(strong,nonatomic) Post *post;
-@property(strong,nonatomic) id postActionSheetDelegate;
+@property(strong, nonatomic) Post *post;
+@property(strong, nonatomic) id postActionSheetDelegate;
 @end
 
 @interface PostDetailNavigationItemHandler
-@property(strong,nonatomic) id controller;
-@property(strong,nonatomic) id presenter;
+@property(strong, nonatomic) id controller;
+@property(strong, nonatomic) id presenter;
 @end
 
 @interface FeedPostDetailCellNode
-@property(strong,nonatomic) id textNode;
-@property(strong,nonatomic) id delegate;
-@property(strong,nonatomic) id contentNode;
-@property(strong,nonatomic) id titleNode;
+@property(strong, nonatomic) id textNode;
+@property(strong, nonatomic) id delegate;
+@property(strong, nonatomic) id contentNode;
+@property(strong, nonatomic) id titleNode;
 @end
 
 @interface FeedPostTitleNode
-@property(strong,nonatomic) id delegate;
+@property(strong, nonatomic) id delegate;
 - (void)configureNodes;
 @end
 
 @interface FeedPostDetailDelegator
-@property(strong,nonatomic) id viewController;
+@property(strong, nonatomic) id viewController;
 @end
 
 @interface FeedPostContentNode
@@ -125,23 +125,23 @@
 /* -- Other Interfaces -- */
 
 @interface RichTextDisplayNode
-@property(strong,nonatomic) id attributedText;
+@property(strong, nonatomic) id attributedText;
 @end
 
 @interface RUIActionSheetItem : NSObject
-@property(strong,nonatomic) id leftIconImage;
+@property(strong, nonatomic) id leftIconImage;
 - (id)initWithLeftIconImage:(id)arg1 text:(id)arg2 identifier:(id)arg3 context:(id)arg4;
 @end
 
 
 @interface ActionSheetItem : NSObject
 // <= 4.17
-@property(strong,nonatomic) id leftIconImage;
+@property(strong, nonatomic) id leftIconImage;
 - (id) initWithLeftIconImage:(id)arg1 text:(id)arg2 identifier:(id)arg3 context:(id)arg4;
 @end
 
 @interface RUITheme
-@property(strong,nonatomic) id bodyTextColor;
+@property(strong, nonatomic) id bodyTextColor;
 @end
 
 @interface NSAttributedStringMarkdownParser
@@ -156,13 +156,13 @@
 + (id)sharedManager;
 
 // >= 4.45.0
-@property(strong,nonatomic) id darkTheme;
-@property(strong,nonatomic) id lightTheme;
+@property(strong, nonatomic) id darkTheme;
+@property(strong, nonatomic) id lightTheme;
 - (id)initWithAppSettings:(id)arg1;
 
 // < 4.45.0
-@property(strong,nonatomic) id dayTheme;
-@property(strong,nonatomic) id nightTheme;
+@property(strong, nonatomic) id dayTheme;
+@property(strong, nonatomic) id nightTheme;
 - (id)initWithTraitCollection:(id)arg1 appSettings:(id)arg2;
 
 @end
@@ -172,7 +172,7 @@
 @end
 
 @interface AccountManager
-@property(assign,nonatomic) id defaults;
+@property(assign, nonatomic) id defaults;
 + (id)sharedManager;
 @end
 

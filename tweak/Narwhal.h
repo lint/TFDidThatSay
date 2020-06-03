@@ -2,16 +2,16 @@
 /* -- Comment Interfaces -- */
 
 @interface RKComment
-@property(assign,nonatomic) NSString* author;
-@property(assign,nonatomic) NSString* parentID;
-@property(assign,nonatomic) NSString* body;
-@property(assign,nonatomic) NSString* fullName;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *parentID;
+@property(strong, nonatomic) NSString *body;
+@property(strong, nonatomic) NSString *fullName;
 
 - (BOOL)isSaved;
 @end
 
 @interface NRTCommentsManager
-@property(assign,nonatomic) NSMutableArray* comments;
+@property(strong, nonatomic) NSMutableArray *comments;
 
 - (void)updateComment:(id)arg1 fromEdited:(id)arg2;
 @end
@@ -19,9 +19,9 @@
 /* -- Post Interfaces -- */
 
 @interface RKLink
-@property(assign,nonatomic) NSString* author;
-@property(assign,nonatomic) NSString* selfText;
-@property(assign,nonatomic) NSString* fullName;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *selfText;
+@property(strong, nonatomic) NSString *fullName;
 @end
 
 @interface NRTLinkTitleCell
@@ -29,7 +29,7 @@
 @end
 
 @interface NRTLinkTextCell
-@property(assign,nonatomic) id bodyLabel;
+@property(strong, nonatomic) id bodyLabel;
 
 - (void)configureCellForText:(id)arg1 links:(id)arg2;
 @end
@@ -37,7 +37,7 @@
 /* -- Other Interfaces -- */
 
 @interface NRTAuthManager
-@property(assign,nonatomic) NSString* currentUsername;
+@property(strong, nonatomic) NSString *currentUsername;
 
 + (id)sharedManager;
 @end
@@ -47,20 +47,20 @@
 @end
 
 @interface NRTAttributedLabel
-@property(assign,nonatomic) id attributedText;
+@property(strong, nonatomic) id attributedText;
 @end
 
 @interface NRTMediaViewController : UIViewController
 @end
 
 @interface NRTLinkViewController : UIViewController
-@property(assign,nonatomic) id comment;
-@property(assign,nonatomic) id commentsManager;
-@property(assign,nonatomic) id linkTextOffscreenCell;
-@property(assign,nonatomic) id linkTitleOffscreenCell;
-@property(assign,nonatomic) id link;
-@property(assign,nonatomic) id linkText;
-@property(assign,nonatomic) id tableView;
+@property(strong, nonatomic) id comment;
+@property(strong, nonatomic) id commentsManager;
+@property(strong, nonatomic) id linkTextOffscreenCell;
+@property(strong, nonatomic) id linkTitleOffscreenCell;
+@property(strong, nonatomic) id link;
+@property(strong, nonatomic) id linkText;
+@property(strong, nonatomic) id tableView;
 
 - (void)_handleActionSheetCopyCommentText:(id)arg1;
 - (void)_handleActionSheetDeleteComment:(id)arg1;
@@ -90,8 +90,8 @@
 @end
 
 @interface NRTMediaTableViewDataSource
-@property(assign,nonatomic) id commentsManager;
-@property(assign,nonatomic) id parentController;
+@property(strong, nonatomic) id commentsManager;
+@property(strong, nonatomic) id parentController;
 
 - (void)_handleActionSheetCopyCommentText:(id)arg1;
 - (void)_handleActionSheetDeleteComment:(id)arg1;

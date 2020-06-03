@@ -2,21 +2,21 @@
 /* -- Comment Interfaces -- */
 
 @interface RKComment
-@property(assign,nonatomic) NSString *body;
-@property(assign,nonatomic) NSString *bodyHTML;
-@property(assign,nonatomic) NSString *author;
-@property(assign,nonatomic) NSString *fullName;
+@property(strong, nonatomic) NSString *body;
+@property(strong, nonatomic) NSString *bodyHTML;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *fullName;
 @end
 
 @interface RDKComment
-@property(assign,nonatomic) NSString *body;
-@property(assign,nonatomic) NSString *bodyHTML;
-@property(assign,nonatomic) NSString *author;
-@property(assign,nonatomic) NSString *fullName;
+@property(strong, nonatomic) NSString *body;
+@property(strong, nonatomic) NSString *bodyHTML;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *fullName;
 @end
 
 @interface CommentCellNode
-@property(assign,nonatomic)id view;
+@property(strong, nonatomic) id view;
 - (BOOL)isSelected;
 - (void)_layoutSublayouts;
 - (void)didLoad;
@@ -30,9 +30,9 @@
 /* -- Post Interfaces -- */
 
 @interface RKLink
-@property(assign,nonatomic) NSString *selfText;
-@property(assign,nonatomic) NSString *author;
-@property(assign,nonatomic) NSString *fullName;
+@property(strong, nonatomic) NSString *selfText;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *fullName;
 - (BOOL)isSelfPost;
 
 //custom elements
@@ -40,9 +40,9 @@
 @end
 
 @interface RDKLink
-@property(assign,nonatomic) NSString *selfText;
-@property(assign,nonatomic) NSString *author;
-@property(assign,nonatomic) NSString *fullName;
+@property(strong, nonatomic) NSString *selfText;
+@property(strong, nonatomic) NSString *author;
+@property(strong, nonatomic) NSString *fullName;
 - (BOOL)isSelfPost;
 
 //custom elements
@@ -85,20 +85,20 @@
 @end
 
 @interface ASImageNode
-@property(assign,nonatomic)id image;
-@property(assign,nonatomic) CGRect frame;
-@property(assign,nonatomic) id view;
+@property(strong, nonatomic) id image;
+@property(assign, nonatomic) CGRect frame;
+@property(strong, nonatomic) id view;
 - (CGRect)_frameInWindow;
 @end
 
 @interface ASTextNode
-@property(assign,nonatomic) CGRect frame;
-@property(assign,nonatomic) NSAttributedString *attributedString;
-@property(assign,nonatomic) NSAttributedString *attributedText;
+@property(assign, nonatomic) CGRect frame;
+@property(strong, nonatomic) NSAttributedString *attributedString;
+@property(strong, nonatomic) NSAttributedString *attributedText;
 @end
 
 @interface ApolloButtonNode
-@property(assign,nonatomic) ASTextNode *titleNode;
+@property(strong, nonatomic) ASTextNode *titleNode;
 - (void) setAttributedTitle:(id)arg1 forState:(NSInteger)arg2;
 - (id) attributedTitleForState:(NSInteger)arg1;
 @end
