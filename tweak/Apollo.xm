@@ -11,9 +11,15 @@ static BOOL shouldApolloHaveButton;
 %group Apollo
 
 NSDictionary* apolloBodyAttributes = nil;
+
 BOOL shouldAddUndeleteCell = NO;
 id apolloCommentCell;
 id apolloCommentController;
+
+BOOL shouldAddUndeleteCellForContext = NO;
+id apolloCommentCellForContext;
+id apolloCommentsControllerForContext;
+
 
 %hook ApolloButtonNode
 %end
@@ -182,7 +188,7 @@ id apolloCommentController;
 
 		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = self;
 			apolloCommentController = nil;
@@ -198,7 +204,7 @@ id apolloCommentController;
 
 		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = self;
 			apolloCommentController = nil;
@@ -211,11 +217,13 @@ id apolloCommentController;
 - (void)didLoad {
 	%orig;
 
+	//HBLogDebug(@"didLoad - actionDelegate:%@", MSHookIvar<id>(self, "actionDelegate"));
+
 	if (shouldApolloHaveButton){
 
 		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
 
 			CGFloat imageSize = 20.0f;
 
@@ -229,14 +237,19 @@ id apolloCommentController;
 			[[self view] addSubview:undeleteButton];
 			[self setUndeleteButton:undeleteButton];
 		}
+	} else {
+
+		id actionDelegate = MSHookIvar<id>(self, "actionDelegate");
+		[actionDelegate setCommentCellNode:self];
+
 	}
 }
 
 - (void)_layoutSublayouts {
 	%orig;
 
-	if (shouldApolloHaveButton){
-		if ([self undeleteButton]){
+	if (shouldApolloHaveButton) {
+		if ([self undeleteButton]) {
 
 			CGFloat imageSize = 20.0f;
 
@@ -306,8 +319,8 @@ id apolloCommentController;
 	RKLink *post = MSHookIvar<RKLink *>(self, "link");
 	NSString *postBody = [post selfText];
 
-	if ([post isSelfPost]){
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
+	if ([post isSelfPost]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = nil;
 			apolloCommentController = self;
@@ -385,6 +398,94 @@ id apolloCommentController;
 
 %end
 
+
+%hook UIMenu
+
+- (id)menuByReplacingChildren:(id)arg5 {
+
+	if (shouldAddUndeleteCellForContext) {
+
+		UIAction *action = [UIAction actionWithTitle:@"TF Did That Say?" image:[UIImage systemImageNamed:@"eye"] identifier:@"testident" handler:^(__kindof UIAction* _Nonnull action) {
+
+				id commentCell = apolloCommentCellForContext;
+				id commentsController = apolloCommentsControllerForContext;
+
+				if (commentCell) {
+					[commentCell undeleteCellWasSelected];
+				} else {
+					[commentsController undeleteCellWasSelected];
+				}
+		}];
+
+		arg5 = [arg5 arrayByAddingObject:action];
+	}
+
+	return %orig;
+}
+
+%end
+
+
+%hook CommentSectionController
+%property(strong, nonatomic) id commentCellNode;
+
+- (id)contextMenuInteraction:(id)arg1 configurationForMenuAtLocation:(CGPoint)arg2 {
+
+	if (!shouldApolloHaveButton) {
+
+		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+			shouldAddUndeleteCellForContext = YES;
+			apolloCommentCellForContext = [self commentCellNode];
+			apolloCommentsControllerForContext = nil;
+		}
+	}
+
+	return %orig;
+}
+
+%new
+- (void)contextMenuInteraction:(id)arg1 willEndForConfiguration:(id)arg2 animator:(id)arg3 {
+
+	shouldAddUndeleteCellForContext = NO;
+	apolloCommentCellForContext = nil;
+	apolloCommentsControllerForContext = nil;
+}
+
+%end
+
+
+%hook CommentsHeaderSectionController
+
+- (id)contextMenuInteraction:(id)arg1 configurationForMenuAtLocation:(CGPoint)arg2 {
+
+	id commentsController = MSHookIvar<id>(self, "viewController");
+
+	RKLink *post = MSHookIvar<RKLink *>(commentsController, "link");
+	NSString *postBody = [post selfText];
+
+	if ([post isSelfPost]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+			shouldAddUndeleteCellForContext = YES;
+			apolloCommentCellForContext = nil;
+			apolloCommentsControllerForContext = commentsController;
+		}
+	}
+
+	return %orig;
+}
+
+%new
+- (void)contextMenuInteraction:(id)arg1 willEndForConfiguration:(id)arg2 animator:(id)arg3 {
+
+	shouldAddUndeleteCellForContext = NO;
+	apolloCommentCellForContext = nil;
+	apolloCommentsControllerForContext = nil;
+}
+
+%end
+
 %end
 
 
@@ -412,6 +513,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 
 %ctor {
+
 	loadPrefs();
 
 	NSString* processName = [[NSProcessInfo processInfo] processName];
@@ -421,7 +523,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
-			%init(Apollo, CommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), CommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"), ActionController = objc_getClass("Apollo.ActionController"), IconActionTableViewCell = objc_getClass("Apollo.IconActionTableViewCell"), CommentsViewController = objc_getClass("Apollo.CommentsViewController"));
+			%init(Apollo, CommentsHeaderCellNode = objc_getClass("Apollo.CommentsHeaderCellNode"), CommentCellNode = objc_getClass("Apollo.CommentCellNode"), ApolloButtonNode = objc_getClass("Apollo.ApolloButtonNode"), ActionController = objc_getClass("Apollo.ActionController"), IconActionTableViewCell = objc_getClass("Apollo.IconActionTableViewCell"), CommentsViewController = objc_getClass("Apollo.CommentsViewController"), CommentSectionController = objc_getClass("Apollo.CommentSectionController"), CommentsHeaderSectionController = objc_getClass("Apollo.CommentsHeaderSectionController"));
 		}
 	}
 }

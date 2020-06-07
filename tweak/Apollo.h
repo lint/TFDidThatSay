@@ -17,6 +17,7 @@
 
 @interface CommentCellNode
 @property(strong, nonatomic) id view;
+@property(strong, nonatomic) id actionDelegate;
 - (BOOL)isSelected;
 - (void)_layoutSublayouts;
 - (void)didLoad;
@@ -25,6 +26,12 @@
 //custom elements
 @property(strong,nonatomic) UIButton *undeleteButton;
 - (void)undeleteCellWasSelected;
+@end
+
+@interface CommentSectionController : NSObject
+
+//custom elements
+@property(strong, nonatomic) id commentCellNode;
 @end
 
 /* -- Post Interfaces -- */
@@ -59,6 +66,9 @@
 //custom elements
 @property(strong, nonatomic) id headerCellNode;
 - (void)undeleteCellWasSelected;
+@end
+
+@interface CommentsHeaderSectionController : NSObject
 @end
 
 /* -- Other Interfaces -- */
