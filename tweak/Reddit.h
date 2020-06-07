@@ -169,6 +169,8 @@
 
 @interface AppSettings
 + (id)sharedSettings;
+- (BOOL)useDarkMode;
+- (BOOL)isAutoDarkModeEnabled;
 @end
 
 @interface AccountManager
@@ -207,4 +209,8 @@
 
 @interface MarkDownParser
 + (id)attributedStringFromMarkdownString:(id)arg1;
+@end
+
+@interface UITraitCollection ()
++ (id)_currentTraitCollection;
 @end

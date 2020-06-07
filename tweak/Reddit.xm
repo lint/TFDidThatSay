@@ -102,16 +102,31 @@ int secondVersionPart = 0;
 	id textColor;
 
 	if (firstVersionPart == 2020) {
-		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+		AppSettings *appSettings = [%c(AppSettings) sharedSettings];
+		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:appSettings];
 		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
 
-		if (isNightMode) {
-			textColor = [[themeManager darkTheme] bodyTextColor];
+		if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0") && [appSettings isAutoDarkModeEnabled]) {
+
+			NSInteger sysInterfaceStyle = [[UITraitCollection _currentTraitCollection] userInterfaceStyle];
+
+			if (sysInterfaceStyle == UIUserInterfaceStyleDark){
+				textColor = [[themeManager darkTheme] bodyTextColor];
+			} else {
+				textColor = [[themeManager lightTheme] bodyTextColor];
+			}
+
 		} else {
-			textColor = [[themeManager lightTheme] bodyTextColor];
+
+			if (isNightMode) {
+				textColor = [[themeManager darkTheme] bodyTextColor];
+			} else {
+				textColor = [[themeManager lightTheme] bodyTextColor];
+			}
 		}
 
 		[themeManager release];
+
 	} else {
 
 		if (secondVersionPart >= 45) {
