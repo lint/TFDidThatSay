@@ -186,9 +186,9 @@ id apolloCommentsControllerForContext;
 
 	if (!shouldApolloHaveButton){
 
-		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		NSString *author = [MSHookIvar<RKComment *>(self, "comment") author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = self;
 			apolloCommentController = nil;
@@ -202,9 +202,9 @@ id apolloCommentsControllerForContext;
 
 	if (!shouldApolloHaveButton){
 
-		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		NSString *author = [MSHookIvar<RKComment *>(self, "comment") author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = self;
 			apolloCommentController = nil;
@@ -217,13 +217,11 @@ id apolloCommentsControllerForContext;
 - (void)didLoad {
 	%orig;
 
-	//HBLogDebug(@"didLoad - actionDelegate:%@", MSHookIvar<id>(self, "actionDelegate"));
+	if (shouldApolloHaveButton) {
 
-	if (shouldApolloHaveButton){
+		NSString *author = [MSHookIvar<RKComment *>(self, "comment") author];
 
-		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
-
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 			CGFloat imageSize = 20.0f;
 
@@ -317,10 +315,10 @@ id apolloCommentsControllerForContext;
 - (void)moreOptionsBarButtonItemTappedWithSender:(id)arg1 {
 
 	RKLink *post = MSHookIvar<RKLink *>(self, "link");
-	NSString *postBody = [post selfText];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]) {
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = nil;
 			apolloCommentController = self;
@@ -383,10 +381,10 @@ id apolloCommentsControllerForContext;
 - (void)longPressedWithGestureRecognizer:(id)arg1 {
 
 	RKLink *post = MSHookIvar<RKLink *>(self, "link");
-	NSString *postBody = [post selfText];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]) {
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]){
 			shouldAddUndeleteCell = YES;
 			apolloCommentCell = nil;
 			apolloCommentController = self;
@@ -433,9 +431,9 @@ id apolloCommentsControllerForContext;
 
 	if (!shouldApolloHaveButton) {
 
-		NSString *commentBody = [MSHookIvar<RKComment *>(self, "comment") body];
+		NSString *author = [MSHookIvar<RKComment *>(self, "comment") author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCellForContext = YES;
 			apolloCommentCellForContext = [self commentCellNode];
 			apolloCommentsControllerForContext = nil;
@@ -463,10 +461,10 @@ id apolloCommentsControllerForContext;
 	id commentsController = MSHookIvar<id>(self, "viewController");
 
 	RKLink *post = MSHookIvar<RKLink *>(commentsController, "link");
-	NSString *postBody = [post selfText];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]) {
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldAddUndeleteCellForContext = YES;
 			apolloCommentCellForContext = nil;
 			apolloCommentsControllerForContext = commentsController;

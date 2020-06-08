@@ -34,9 +34,9 @@ id tfAntennaCommentCell;
 
 - (void)didLongPressCell:(id)arg1 gesture:(id)arg2 {
 
-	NSString *commentBody = [[[arg1 comment] commentText] body];
+	NSString *author = [[arg1 comment] author];
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]){
 		tfAntennaController = self;
 		tfAntennaCommentCell = arg1;
 		shouldHaveAntennaUndeleteAction = YES;
@@ -113,10 +113,10 @@ id tfAntennaCommentCell;
 	BOOL isAbleToUndeletePost = NO;
 
 	id post = [[self delegate] postInternal];
-	NSString *postBody = [[post selfCommentText] body];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]){
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]){
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]){
 			isAbleToUndeletePost = YES;
 
 			NSMutableArray *barButtons = [self defaultHeaderButtons];

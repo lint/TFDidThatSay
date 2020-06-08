@@ -48,9 +48,9 @@ void getUndeleteCommentData(id controller, id comment){
 	if (arg2 == 2) {
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
 
-			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
+			NSString *author = [[arg1 comment] author];
 
-			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]){
+			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]){
 				tfComment = [arg1 comment];
 				tfController = self;
 				shouldHaveUndeleteAction = YES;
@@ -67,9 +67,9 @@ void getUndeleteCommentData(id controller, id comment){
 
 	if ([self linkTextOffscreenCell]) {
 
-		NSString *postBody = [[self link] selfText];
+		NSString *author = [[self link] author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			tfController = self;
 			tfComment = nil;
 			shouldHaveUndeleteAction = YES;
@@ -126,9 +126,9 @@ void getUndeleteCommentData(id controller, id comment){
 	if (arg2 == 2) {
 		if ([arg1 isKindOfClass:[%c(NRTCommentTableViewCell) class]]) {
 
-			NSString *commentBody = MSHookIvar<NSString*>([arg1 comment], "_body");
+			NSString *author = [[arg1 comment] author];
 
-			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+			if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 				tfComment = [arg1 comment];
 				tfController = self;
 				shouldHaveUndeleteAction = YES;

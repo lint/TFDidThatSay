@@ -15,15 +15,15 @@ static CGFloat pushshiftRequestTimeoutValue;
 - (id)initWithNode:(id)arg1 {
 	id orig = %orig;
 
-	NSString *body;
+	NSString *author;
 
 	if ([self isPostHeader]) {
-		body = [[arg1 post] selftext];
+		author = [[arg1 post] author];
 	} else {
-		body = [[(CommentNode *)arg1 comment] body];
+		author = [[(CommentNode *)arg1 comment] author];
 	}
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:body isDeletedOnly:isTFDeletedOnly]){
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]){
 
 		CGSize refSize = [[self buttons][0] frame].size;
 

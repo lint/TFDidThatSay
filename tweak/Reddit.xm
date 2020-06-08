@@ -51,9 +51,9 @@ int secondVersionPart = 0;
 
 - (void)setItems:(id)arg1 {
 
-	NSString *commentAuthor = [[self comment] author];
+	NSString *author = [[self comment] author];
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentAuthor isDeletedOnly:isTFDeletedOnly]) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 
@@ -206,10 +206,10 @@ int secondVersionPart = 0;
 - (void)setItems:(id)arg1 {
 
 	Post *post = [self post];
-	NSString *postBody = [post selfText];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]) {
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 			UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 
@@ -366,9 +366,9 @@ int secondVersionPart = 0;
 
 - (void)setItems:(id)arg1 {
 
-	NSString *commentAuthor = [[self comment] author];
+	NSString *author = [[self comment] author];
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentAuthor isDeletedOnly:isTFDeletedOnly]) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 		UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 
@@ -450,10 +450,10 @@ int secondVersionPart = 0;
 - (void)setItems:(id)arg1{
 
 	Post *post = [self post];
-	NSString *postBody = [post selfText];
+	NSString *author = [post author];
 
 	if ([post isSelfPost]) {
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 			UIImage* origImage = [UIImage imageWithContentsOfFile:@"/var/mobile/Library/Application Support/TFDidThatSay/eye160dark.png"];
 

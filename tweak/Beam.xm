@@ -25,9 +25,9 @@ static CGFloat pushshiftRequestTimeoutValue;
 		}
 	} else {
 
-		NSString *commentBody = [[self comment] content];
+		NSString *author = [[self comment] author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 			CGFloat authorTextHeight = [[self authorButton] frame].size.height;
 
@@ -113,9 +113,9 @@ static CGFloat pushshiftRequestTimeoutValue;
 
 	if (![self undeleteButton] && [[[self post] isSelfText] boolValue] && [MSHookIvar<id>(self, "delegate") isMemberOfClass:objc_getClass("beam.PostDetailEmbeddedViewController")]) {
 
-		NSString *postBody = [[self post] content];
+		NSString *author = [[self post] author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 			id moreButton = MSHookIvar<id>(self, "moreButton");
 

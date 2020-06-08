@@ -93,9 +93,9 @@ id tfStoryController;
 
 - (void)showMoreCommentActions:(id)arg1 showAll:(BOOL)arg2 {
 
-	NSString *commentBody = [[arg1 comment] body];
+	NSString *author = [[arg1 comment] author];
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 		shouldHaveBRUndeleteAction = YES;
 		tfCommentCellView = arg1;
 		tfStoryController = self;
@@ -110,9 +110,9 @@ id tfStoryController;
 - (void)menuTouchedWithSender:(id)arg1 {
 
 	if ([[self story] is_selfValue]) {
-		NSString *postBody = [[self story] selftext];
+		NSString *author = [[self story] author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			shouldHaveBRUndeleteAction = YES;
 			tfCommentCellView = nil;
 			tfStoryController = self;

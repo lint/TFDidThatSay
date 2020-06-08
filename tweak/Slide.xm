@@ -265,9 +265,9 @@ static UIButton *createUndeleteButton(){
 %new
 - (void)addUndeleteButtonToMenu {
 
-	NSString *commentBody = [MSHookIvar<id>(self, "comment") body];
+	NSString *author = [MSHookIvar<id>(self, "comment") author];
 
-	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:commentBody isDeletedOnly:isTFDeletedOnly]) {
+	if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 
 		id controller = MSHookIvar<id>(self, "parent");
 
@@ -464,9 +464,9 @@ static UIButton *createUndeleteButton(){
 
 	if ([post isSelf]) {
 
-		NSString *postBody = [post body];
+		NSString *author = [post author];
 
-		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:postBody isDeletedOnly:isTFDeletedOnly]) {
+		if ([%c(TFHelper) shouldShowUndeleteButtonWithInfo:author isDeletedOnly:isTFDeletedOnly]) {
 			return YES;
 		}
 	}
