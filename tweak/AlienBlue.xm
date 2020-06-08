@@ -139,7 +139,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 	NSString* processName = [[NSProcessInfo processInfo] processName];
 
-	if ([processName isEqualToString:@"AlienBlue"]){
+	if ([processName isEqualToString:@"AlienBlue"] || [processName isEqualToString:@"AlienBlueHD"]){
 		if (isAlienBlueEnabled && isEnabled){
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
