@@ -102,9 +102,11 @@ int secondVersionPart = 0;
 	id textColor;
 
 	if (firstVersionPart == 2020) {
+		AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
 		AppSettings *appSettings = [%c(AppSettings) sharedSettings];
+		AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:appSettings];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
 
 		if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0") && [appSettings isAutoDarkModeEnabled]) {
 
@@ -258,8 +260,10 @@ int secondVersionPart = 0;
 	id textColor;
 
 	if (firstVersionPart == 2020) {
+		AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+		AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
 		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
-		isNightMode = [[[%c(AccountManager) sharedManager] defaults] objectForKey:@"kUseNightKey"];
+		isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
 
 		if (isNightMode) {
 			textColor = [[themeManager darkTheme] bodyTextColor];

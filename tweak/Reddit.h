@@ -176,8 +176,11 @@
 @interface AccountManager
 @property(assign, nonatomic) id defaults;
 + (id)sharedManager;
-@end
+@end
 
+@interface AppDelegate : UIResponder
+@property(strong, nonatomic) AccountManager *accountManager;
+@end
 
 /* ---- Reddit v3 ---- */
 
