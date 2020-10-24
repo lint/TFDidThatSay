@@ -179,7 +179,10 @@ int secondVersionPart = 0;
 	[comment setAuthor:author];
 	[comment setBodyText:body];
 	[comment setBodyRichTextAttributed:bodyMutableAttributedText];
-	[comment setBodyAttributedText:bodyMutableAttributedText];
+
+	if (secondVersionPart <= 39) {
+		[comment setBodyAttributedText:bodyMutableAttributedText];
+	}
 
 	[[commentTreeNode commentTreeHeaderNode] updateContentViewsForData:comment];
 
