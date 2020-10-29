@@ -164,7 +164,12 @@
 @property(strong, nonatomic) id dayTheme;
 @property(strong, nonatomic) id nightTheme;
 - (id)initWithTraitCollection:(id)arg1 appSettings:(id)arg2;
+@end
 
+// >= 2020.41.0
+@interface RUIThemeGuidance : NSObject
+@property(strong, nonatomic) RUITheme *currentTheme;
++ (id)sharedGuidance;
 @end
 
 @interface AppSettings

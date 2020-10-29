@@ -102,32 +102,37 @@ int secondVersionPart = 0;
 	id textColor;
 
 	if (firstVersionPart == 2020) {
-		AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-		AppSettings *appSettings = [%c(AppSettings) sharedSettings];
-		AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
-		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:appSettings];
-		isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
+		if (secondVersionPart <= 40) {
+			AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+			AppSettings *appSettings = [%c(AppSettings) sharedSettings];
+			AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
+			themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:appSettings];
+			isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
 
-		if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0") && [appSettings isAutoDarkModeEnabled]) {
+			if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0") && [appSettings isAutoDarkModeEnabled]) {
 
-			NSInteger sysInterfaceStyle = [[UITraitCollection _currentTraitCollection] userInterfaceStyle];
+				NSInteger sysInterfaceStyle = [[UITraitCollection _currentTraitCollection] userInterfaceStyle];
 
-			if (sysInterfaceStyle == UIUserInterfaceStyleDark){
-				textColor = [[themeManager darkTheme] bodyTextColor];
+				if (sysInterfaceStyle == UIUserInterfaceStyleDark){
+					textColor = [[themeManager darkTheme] bodyTextColor];
+				} else {
+					textColor = [[themeManager lightTheme] bodyTextColor];
+				}
+
 			} else {
-				textColor = [[themeManager lightTheme] bodyTextColor];
+
+				if (isNightMode) {
+					textColor = [[themeManager darkTheme] bodyTextColor];
+				} else {
+					textColor = [[themeManager lightTheme] bodyTextColor];
+				}
 			}
 
+			[themeManager release];
 		} else {
-
-			if (isNightMode) {
-				textColor = [[themeManager darkTheme] bodyTextColor];
-			} else {
-				textColor = [[themeManager lightTheme] bodyTextColor];
-			}
+			RUIThemeGuidance *themeGuidance = [%c(RUIThemeGuidance) sharedGuidance];
+			textColor = [[themeGuidance currentTheme] bodyTextColor];
 		}
-
-		[themeManager release];
 
 	} else {
 
@@ -263,18 +268,26 @@ int secondVersionPart = 0;
 	id textColor;
 
 	if (firstVersionPart == 2020) {
-		AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-		AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
-		themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
-		isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
 
-		if (isNightMode) {
-			textColor = [[themeManager darkTheme] bodyTextColor];
+		if (secondVersionPart <= 40) {
+
+			AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+			AccountManager *accountManager = secondVersionPart >= 29 ? [appDelegate accountManager] : [%c(AccountManager) sharedManager];
+			themeManager = [[%c(ThemeManager) alloc] initWithAppSettings:[%c(AppSettings) sharedSettings]];
+			isNightMode = [[accountManager defaults] objectForKey:@"kUseNightKey"];
+
+			if (isNightMode) {
+				textColor = [[themeManager darkTheme] bodyTextColor];
+			} else {
+				textColor = [[themeManager lightTheme] bodyTextColor];
+			}
+
+			[themeManager release];
 		} else {
-			textColor = [[themeManager lightTheme] bodyTextColor];
+			RUIThemeGuidance *themeGuidance = [%c(RUIThemeGuidance) sharedGuidance];
+			textColor = [[themeGuidance currentTheme] bodyTextColor];
 		}
 
-		[themeManager release];
 	} else {
 
 		if (secondVersionPart >= 45) {
