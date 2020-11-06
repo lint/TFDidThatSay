@@ -8,7 +8,7 @@ TFDidThatSayPrefs_FILES = TFDTSRootListController.m
 TFDidThatSayPrefs_INSTALL_PATH = /Library/PreferenceBundles
 TFDidThatSayPrefs_FRAMEWORKS = UIKit
 TFDidThatSayPrefs_PRIVATE_FRAMEWORKS = Preferences
-TFDidThatSayPrefs_CFLAGS = -fobjc-arc
+TFDidThatSayPrefs_CFLAGS = -fobjc-arc -Wno-unguarded-availability-new
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 
