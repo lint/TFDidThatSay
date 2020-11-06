@@ -248,6 +248,20 @@
 			<key>showValue</key>
 			<true/>
 		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>footerText</key>
+			<string>Displays how far behind the ingest is (i.e. how long ago the most recently archived comment and post were created).</string>
+		</dict>
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Check Latest Ingest Times</string>
+			<key>action</key>
+			<string>checkLatest:</string>
+		</dict>
 	</array>
 	<key>title</key>
 	<string>TFDidThatSay?</string>
