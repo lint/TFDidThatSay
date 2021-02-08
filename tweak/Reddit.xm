@@ -18,7 +18,12 @@ UIColor * getCurrentTextColor() {
 	id isNightMode;
 	UIColor *textColor;
 
-	if (firstVersionPart == 2020) {
+	if (firstVersionPart >= 2021) {
+
+		RUIThemeGuidance *themeGuidance = [%c(RUIThemeGuidance) sharedGuidance];
+		textColor = [[themeGuidance currentTheme] bodyTextColor];
+
+	} else if (firstVersionPart == 2020) {
 		if (secondVersionPart <= 40) {
 
 			AppDelegate *appDelegate = (AppDelegate *)[[UIApplication sharedApplication] delegate];
@@ -197,41 +202,19 @@ UIColor * getCurrentTextColor() {
 	}
 
 	CommentTreeHeaderNode *headerNode = [commentTreeNode commentTreeHeaderNode];
-
 	[headerNode updateContentViewsForData:comment];
 	[headerNode configureNodes];
+
+	if (firstVersionPart >= 2021) {
+		CommentTreeTextNode *textNode = [[headerNode supernode] textNode];
+		[textNode configureTextNode];
+	}
 
 	[bodyMutableAttributedText release];
 }
 
 %end
 
-/*
-%hook Post
-
-- (id)previewTextWithTheme:(id)arg1 {
-	%log;
-	id orig = %orig;
-	HBLogDebug(@"previewTextWithTheme: orig: %@", orig);
-	return orig;
-}
-
-- (id)previewFeedPostTextString {
-	%log;
-	id orig = %orig;
-	HBLogDebug(@"previewFeedPostTextString orig: %@", orig);
-	return orig;
-}
-
-- (id)previewPostText:(id)arg1 {
-	%log;
-	id orig = %orig;
-	HBLogDebug(@"previewPostText: orig: %@", orig);
-	return orig;
-}
-
-%end
-*/
 
 %hook PostDetailViewController
 %property(strong,nonatomic) id feedPostTextWithThumbnailNode;
@@ -275,7 +258,6 @@ UIColor * getCurrentTextColor() {
 	%orig;
 }
 
-
 - (void)handleDidSelectActionSheetItem:(id)arg1 {
 	%orig;
 
@@ -317,7 +299,13 @@ UIColor * getCurrentTextColor() {
 	Post *feedPost = [titleNode post];
 	[feedPost setAuthor:author];
 
-	if (firstVersionPart == 2020) {
+	if (firstVersionPart >= 2021) {
+		RichTextDisplayNode *selfTextNode = [[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] selfTextNode];
+		[selfTextNode setAttributedText:bodyMutableAttributedText];
+		[selfTextNode configureDisplayNodes];
+		[titleNode configureNodes];
+
+	} else if (firstVersionPart == 2020) {
 		if (secondVersionPart >= 42) {
 			RichTextDisplayNode *selfTextNode = [[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] selfTextNode];
 			[selfTextNode setAttributedText:bodyMutableAttributedText];
@@ -599,7 +587,6 @@ UIColor * getCurrentTextColor() {
 	[commentsViewController reloadCommentsWithNewCommentsHighlight:NO autoScroll:NO animated:NO];
 }
 
-
 -(id) initWithFrame:(id)arg1{
 	id orig = %orig;
 	id commandView = [self commandView];
@@ -616,7 +603,6 @@ UIColor * getCurrentTextColor() {
 
 	return orig;
 }
-
 
 %end
 
@@ -677,18 +663,6 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 		if (isRedditEnabled && isEnabled) {
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-
-			/*
-			if (firstVersionPart == 4 || firstVersionPart == 2020) {
-				if (secondVersionPart <= 32 && firstVersionPart != 2020) {
-					%init(Reddit_v4_ios10);
-				} else{
-					%init(Reddit_v4_current);
-				}
-			} else if (firstVersionPart == 3) {
-				%init(Reddit_v3);
-			}
-			*/
 
 			if (firstVersionPart >= 2020 || (firstVersionPart == 4 && secondVersionPart > 32)) {
 				%init(Reddit_v4_current);

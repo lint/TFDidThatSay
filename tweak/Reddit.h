@@ -1,7 +1,7 @@
 
 #import <UIKit/UIKit.h>
 
-/* ---- Reddit v3 & v4 ---- */
+/* ---- Reddit v3 & v4 & v2020 & v2021 ---- */
 
 /* -- Comment Interfaces -- */
 
@@ -38,8 +38,12 @@
 @end
 
 
-/* ---- Reddit v4 ---- */
+/* ---- Reddit v4+ ---- */
 
+
+@interface ASDisplayNode
+- (id)supernode;
+@end
 
 /* -- Comment Interfaces -- */
 
@@ -55,7 +59,7 @@
 @property(strong, nonatomic) id commentNode;
 @end
 
-@interface CommentTreeHeaderNode
+@interface CommentTreeHeaderNode : ASDisplayNode
 @property(strong, nonatomic) id commentTreeNode;
 - (void)updateContentViewsForData:(id)arg1;
 - (void)configureNodes;
@@ -71,8 +75,15 @@
 
 @interface CommentTreeHeaderView
 @property(strong, nonatomic) id commentTreeNode;
-
 - (void)updateContentViewsForData:(id)arg1;
+@end
+
+@interface CommentTreeTextNode
+- (void)configureTextNode;
+@end
+
+@interface CommentTreeContentNode
+@property(strong, nonatomic) CommentTreeTextNode *textNode;
 @end
 
 /* -- Post Interfaces -- */
