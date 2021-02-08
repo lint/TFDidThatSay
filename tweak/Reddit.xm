@@ -7,7 +7,7 @@ static BOOL isRedditEnabled;
 static BOOL isTFDeletedOnly;
 static CGFloat pushshiftRequestTimeoutValue;
 
-int firstVersionPart = 2020;
+int firstVersionPart = 0;
 int secondVersionPart = 0;
 
 %group Reddit_v4_current
@@ -196,6 +196,32 @@ int secondVersionPart = 0;
 
 %end
 
+/*
+%hook Post
+
+- (id)previewTextWithTheme:(id)arg1 {
+	%log;
+	id orig = %orig;
+	HBLogDebug(@"previewTextWithTheme: orig: %@", orig);
+	return orig;
+}
+
+- (id)previewFeedPostTextString {
+	%log;
+	id orig = %orig;
+	HBLogDebug(@"previewFeedPostTextString orig: %@", orig);
+	return orig;
+}
+
+- (id)previewPostText:(id)arg1 {
+	%log;
+	id orig = %orig;
+	HBLogDebug(@"previewPostText: orig: %@", orig);
+	return orig;
+}
+
+%end
+*/
 
 %hook PostDetailViewController
 %property(strong,nonatomic) id feedPostTextWithThumbnailNode;
@@ -326,6 +352,16 @@ int secondVersionPart = 0;
 		}
 	}
 
+	/*
+	NSMutableAttributedString *bodyMutableAttributedText;
+
+	if ((firstVersionPart == 2020 && secondVersionPart <= 41) || firstVersionPart != 2020) {
+		bodyMutableAttributedText = [[post previewFeedPostTextString] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+	} else {
+		bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
+	}
+	*/
+
 	NSMutableAttributedString *bodyMutableAttributedText = [[NSMutableAttributedString alloc] initWithAttributedString:[%c(NSAttributedStringMarkdownParser) attributedStringUsingCurrentConfig:body]];
 
 	[bodyMutableAttributedText beginEditing];
@@ -338,11 +374,27 @@ int secondVersionPart = 0;
 	[post setSelfText:body];
 	[post setAuthor:author];
 	[post setSelfPostRichTextAttributed:bodyMutableAttributedText];
-	[post setPreviewFeedPostTextString:bodyMutableAttributedText];
+
+	FeedPostTitleNode *titleNode = [[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] titleNode];
+	Post *feedPost = [titleNode post];
+	[feedPost setAuthor:author];
 
 	if (firstVersionPart == 2020) {
-		[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
+		if (secondVersionPart >= 42) {
+			RichTextDisplayNode *selfTextNode = [[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] selfTextNode];
+			[selfTextNode setAttributedText:bodyMutableAttributedText];
+			[selfTextNode configureDisplayNodes];
+		} else {
+			[post setPreviewFeedPostTextString:bodyMutableAttributedText];
+			[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
+		}
+
+		if (secondVersionPart >= 41) {
+			[titleNode configureNodes];
+		}
 	} else {
+		[post setPreviewFeedPostTextString:bodyMutableAttributedText];
+
 		if (secondVersionPart >= 44) {
 			[[[[[self postActionSheetDelegate] controller] feedPostDetailCellNode] contentNode] configureSelfTextNode];
 		} else if (secondVersionPart >= 38) {
@@ -679,7 +731,7 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 		secondVersionPart = [redditVersion[1] intValue];
 	}
 	@catch (NSException *exc) {
-		firstVersionPart = 2020;
+		firstVersionPart = 0;
 		secondVersionPart = 0;
 	}
 
@@ -688,12 +740,22 @@ static void prefsChanged(CFNotificationCenterRef center, void *observer, CFStrin
 
 			CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)prefsChanged, CFSTR("com.lint.undelete.prefs.changed"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
+			/*
 			if (firstVersionPart == 4 || firstVersionPart == 2020) {
 				if (secondVersionPart <= 32 && firstVersionPart != 2020) {
 					%init(Reddit_v4_ios10);
 				} else{
 					%init(Reddit_v4_current);
 				}
+			} else if (firstVersionPart == 3) {
+				%init(Reddit_v3);
+			}
+			*/
+
+			if (firstVersionPart >= 2020 || (firstVersionPart == 4 && secondVersionPart > 32)) {
+				%init(Reddit_v4_current);
+			} else if (firstVersionPart == 4 && secondVersionPart <= 32) {
+				%init(Reddit_v4_ios10);
 			} else if (firstVersionPart == 3) {
 				%init(Reddit_v3);
 			}

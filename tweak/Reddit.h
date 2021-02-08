@@ -110,6 +110,7 @@
 @end
 
 @interface FeedPostTitleNode
+@property(strong, nonatomic) Post *post;
 @property(strong, nonatomic) id delegate;
 - (void)configureNodes;
 @end
@@ -125,7 +126,8 @@
 /* -- Other Interfaces -- */
 
 @interface RichTextDisplayNode
-@property(strong, nonatomic) id attributedText;
+@property(strong, nonatomic) NSAttributedString *attributedText;
+- (void)configureDisplayNodes;
 @end
 
 @interface RUIActionSheetItem : NSObject
