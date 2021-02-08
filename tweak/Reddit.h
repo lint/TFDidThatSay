@@ -58,6 +58,7 @@
 @interface CommentTreeHeaderNode
 @property(strong, nonatomic) id commentTreeNode;
 - (void)updateContentViewsForData:(id)arg1;
+- (void)configureNodes;
 @end
 
 @interface CommentTreeCommandBarNode
@@ -156,7 +157,7 @@
 - (id)initWithConfig:(id)arg1;
 @end
 
-@interface ThemeManager
+@interface ThemeManager : NSObject
 
 + (id)sharedManager;
 
