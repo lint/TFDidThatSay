@@ -185,11 +185,14 @@ int secondVersionPart = 0;
 	[comment setBodyText:body];
 	[comment setBodyRichTextAttributed:bodyMutableAttributedText];
 
-	if (secondVersionPart <= 39) {
+	if ((firstVersionPart == 2020 && secondVersionPart <= 39) || firstVersionPart == 4) {
 		[comment setBodyAttributedText:bodyMutableAttributedText];
 	}
 
-	[[commentTreeNode commentTreeHeaderNode] updateContentViewsForData:comment];
+	CommentTreeHeaderNode *headerNode = [commentTreeNode commentTreeHeaderNode];
+
+	[headerNode updateContentViewsForData:comment];
+	[headerNode configureNodes];
 
 	[bodyMutableAttributedText release];
 }
