@@ -1,4 +1,6 @@
 
+#import <UIKit/UIKit.h>
+
 /* -- Voteable Interfaces -- */
 
 @interface VoteableElement : NSObject

@@ -1,3 +1,6 @@
+
+#import <UIKit/UIKit.h>
+
 /* ---- Reddit v3 & v4 ---- */
 
 /* -- Comment Interfaces -- */

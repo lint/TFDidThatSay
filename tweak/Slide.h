@@ -1,4 +1,6 @@
 
+#import <UIKit/UIKit.h>
+
 /* -- Comment Interfaces -- */
 
 @interface RComment
