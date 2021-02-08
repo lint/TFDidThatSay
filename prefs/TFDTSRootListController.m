@@ -83,8 +83,13 @@
 		[request setURL:[NSURL URLWithString:@"https://api.pushshift.io/reddit/search/submission/?fields=created_utc&size=1"]];
 	}
 
+	NSMutableDictionary *prefs = [NSMutableDictionary dictionary];
+	[prefs addEntriesFromDictionary:[NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.lint.undelete.prefs.plist"]];
+
+	NSInteger timeout = [prefs objectForKey:@"requestTimeoutValue"] ? [[prefs objectForKey:@"requestTimeoutValue"] doubleValue] : 10;
+
 	[request setHTTPMethod:@"GET"];
-	[request setTimeoutInterval:10];
+	[request setTimeoutInterval:timeout];
 
 	NSURLSessionDataTask *dataTask = [[NSURLSession sharedSession] dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
 	//[NSURLConnection sendAsynchronousRequest:request queue:queue completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
@@ -136,7 +141,7 @@
 		}
 
 		if (error) {
-			resultText = [NSString stringWithFormat:@"an error occurred. HTTP Status Code: %li, Error Description: %@",
+			resultText = [NSString stringWithFormat:@"HTTP Status: %li, Error: %@",
 			(long)((NSHTTPURLResponse *)response).statusCode, [error localizedDescription]];
 		}
 
