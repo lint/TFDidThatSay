@@ -22,9 +22,10 @@
 
 		NSString *author = @"[author]";
 		NSString *body = @"[body]";
+		NSError *jsonError;
 
 		if (data) {
-			id jsonData = [[NSJSONSerialization JSONObjectWithData:data options:0 error:&error] objectForKey:@"data"];
+			id jsonData = [[NSJSONSerialization JSONObjectWithData:data options:0 error:&jsonError] objectForKey:@"data"];
 			if (jsonData && [jsonData count] != 0) {
 				author = [jsonData[0] objectForKey:@"author"];
 				body = isComment ? [jsonData[0] objectForKey:@"body"] : [jsonData[0] objectForKey:@"selftext"];
@@ -36,9 +37,16 @@
 			}
 		}
 
+		if (error || jsonError) {
+			body = [NSString stringWithFormat:@"[an error occurred while attempting retrieve data from the pushshift api]\n\nHTTP Status Code: %li", (long)((NSHTTPURLResponse *)response).statusCode];
+		}
+
 		if (error) {
-			body = [NSString stringWithFormat:@"[an error occurred while attempting retrieve data from the pushshift api]\n\nHTTP Status Code: %li\n\nError Description: %@",
-			(long)((NSHTTPURLResponse *)response).statusCode, [error localizedDescription]];
+			body = [body stringByAppendingFormat:@"\n\nRequest Error: %@", [error localizedDescription]];
+		}
+
+		if (jsonError) {
+			body = [body stringByAppendingFormat:@"\n\nJSON Error: %@", [jsonError localizedDescription]];
 		}
 
 		NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{@"author" : author, @"body" : body}];
