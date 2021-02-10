@@ -48,11 +48,8 @@
 
 	cell.userInteractionEnabled = NO;
 
-	UIActivityIndicatorView *activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
-
-	if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0")) {
-		activityView.activityIndicatorViewStyle = UIScreen.mainScreen.traitCollection.userInterfaceStyle == UIUserInterfaceStyleDark ? UIActivityIndicatorViewStyleWhite : UIActivityIndicatorViewStyleGray;
-	}
+	NSInteger activityIndicatorStyle = SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"13.0") ? UIActivityIndicatorViewStyleMedium : 2; // UIActivityIndicatorViewStyleGray == 2
+	UIActivityIndicatorView *activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:activityIndicatorStyle];
 
 	[cell setAccessoryView:activityView];
 	[activityView startAnimating];
