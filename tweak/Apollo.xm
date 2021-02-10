@@ -83,18 +83,26 @@ id apolloCommentsControllerForContext;
 	return %orig;
 }
 
+// fix for v1.10.6 no longer getting text attributes, meaning text color was not showing properly
++ (id)attributedStringFromHTML:(id)arg1 attributes:(id)arg2 compact:(BOOL)arg3 snoomojiMapping:(id)arg4 {
+
+	apolloBodyAttributes = [arg2 copy];
+
+	return %orig;
+}
+
 %end
 
 
 %hook ActionController
 
-- (id) tableView:(id)arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2 {
+- (id)tableView:(id)arg1 cellForRowAtIndexPath:(NSIndexPath *)arg2 {
 
 	if (shouldAddUndeleteCell) {
-		if ([arg2 row] == [self tableView:arg1 numberOfRowsInSection:0] - 1){
+		if ([arg2 row] == [self tableView:arg1 numberOfRowsInSection:0] - 1) {
 
 			id undeleteCell = [arg1 dequeueReusableCellWithIdentifier:@"IconActionCell" forIndexPath:arg2];
-			id prevCell = [arg1 dequeueReusableCellWithIdentifier:@"IconActionCell"];
+			id prevCell = [arg1 dequeueReusableCellWithIdentifier:@"IconActionCell"]; // is this necessary?
 
 			UIImageView *prevCellImageView = MSHookIvar<UIImageView *>(prevCell, "iconImageView");
 			CGSize prevImageSize = [[prevCellImageView image] size];
@@ -137,6 +145,17 @@ id apolloCommentsControllerForContext;
 			undeleteLabel.text = @"TF Did That Say?";
 			undeleteImageView.image = undeleteImage;
 
+			// fix undelete cell being green when moderator cell is present
+
+			UIColor *contentColor = [UIColor colorWithRed:0.137 green:0.6 blue:1 alpha:1];
+			[undeleteImageView setTintColor:contentColor];
+
+			NSMutableAttributedString *newAttribuedText = [[NSMutableAttributedString alloc] initWithAttributedString:undeleteLabel.attributedText];
+			[newAttribuedText addAttribute:NSForegroundColorAttributeName value:contentColor range:NSMakeRange(0, [newAttribuedText length])];
+			undeleteLabel.attributedText = newAttribuedText;
+
+			MSHookIvar<UIImageView *>(undeleteCell, "disclosureIndicator").image = nil;
+
 			return undeleteCell;
 		}
 	}
@@ -160,7 +179,7 @@ id apolloCommentsControllerForContext;
 	%orig;
 }
 
-- (NSInteger) tableView:(id)arg1 numberOfRowsInSection:(NSInteger)arg2 {
+- (NSInteger)tableView:(id)arg1 numberOfRowsInSection:(NSInteger)arg2 {
 
 	if (shouldAddUndeleteCell){
 		return %orig + 1;
@@ -169,7 +188,7 @@ id apolloCommentsControllerForContext;
 	}
 }
 
-- (id) animationControllerForDismissedController:(id)arg1 {
+- (id)animationControllerForDismissedController:(id)arg1 {
 
 	shouldAddUndeleteCell = NO;
 
