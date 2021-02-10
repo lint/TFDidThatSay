@@ -85,11 +85,14 @@ NSString *slidePostOverrideBodyHtml;
 + (UIColor *)accentColorForSub:(NSString *)subreddit {
 	NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
 	NSData *colorData = [userDefaults dataForKey:[NSString stringWithFormat:@"accent+%@", subreddit]];
-	UIColor *color = [NSKeyedUnarchiver unarchiveObjectWithData:colorData];
+	//UIColor *color = [NSKeyedUnarchiver unarchiveObjectWithData:colorData]; // deprecated
+	UIColor *color = [NSKeyedUnarchiver unarchivedObjectOfClass:[UIColor class] fromData:colorData error:nil];
+
 	if (color) {
 		return color;
 	} else {
-		UIColor *baseAccentColor = [NSKeyedUnarchiver unarchiveObjectWithData:[userDefaults dataForKey:@"accentcolor"]];
+		//UIColor *baseAccentColor = [NSKeyedUnarchiver unarchiveObjectWithData:[userDefaults dataForKey:@"accentcolor"]]; // deprecated
+		UIColor *baseAccentColor = [NSKeyedUnarchiver unarchivedObjectOfClass:[UIColor class] fromData:[userDefaults dataForKey:@"accentcolor"] error:nil];
 
 		if (baseAccentColor) {
 			return baseAccentColor;
