@@ -91,6 +91,13 @@ id apolloCommentsControllerForContext;
 	return %orig;
 }
 
++ (id)attributedStringFromHTML:(id)arg1 attributes:(id)arg2 compact:(BOOL)arg3 snoomojiMapping:(id)arg4 snoomojiInfo:(id)arg5 {
+
+	apolloBodyAttributes = [arg2 copy];
+
+	return %orig;
+}
+
 %end
 
 
