@@ -318,7 +318,12 @@ id apolloCommentsControllerForContext;
 	NSAttributedString *newAuthorAttributedString = [[NSAttributedString alloc] initWithString:author attributes:authorStringAttributes];
 
 	[authorNode setAttributedTitle:newAuthorAttributedString forState:UIControlStateNormal];
-	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	@try {
+		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	}
+	@catch (NSException *exc) {
+		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes isForPreview:NO]];
+	}
 
 	if ([data objectForKey:@"sender"]) {
 		[data[@"sender"] setEnabled:YES];
@@ -377,7 +382,12 @@ id apolloCommentsControllerForContext;
 	NSAttributedString* newAuthorAttributedString = [[NSAttributedString alloc] initWithString:authorTextString attributes:authorStringAttributes];
 
 	[authorNode setAttributedTitle:newAuthorAttributedString forState:UIControlStateNormal];
-	[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	@try {
+		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes]];
+	}
+	@catch (NSException *exc) {
+		[bodyNode setAttributedString:[%c(MarkdownRenderer) attributedStringFromMarkdown:body withAttributes:apolloBodyAttributes isForPreview:NO]];
+	}
 }
 
 %end
