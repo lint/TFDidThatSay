@@ -77,6 +77,7 @@
 
 @interface MarkdownRenderer
 + (id)attributedStringFromMarkdown:(id)arg1 withAttributes:(id)arg2;
++ (id)attributedStringFromMarkdown:(id)arg1 withAttributes:(id)arg2 isForPreview:(BOOL)arg3;
 @end
 
 @interface ActionController
